@@ -1,0 +1,75 @@
+# Ignore build output
+libraries/
+build/
+bin/
+vcpkg_installed/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Ignore object files
+*.o
+*.obj
+
+# Ignore compiled binaries
+*.out
+*.app
+
+# Ignore generated files
+*.class
+*.jar
+*.war
+*.ear
+*.apk
+*.swp
+*.swo
+
+# Ignore log files
+*.log
+
+# Ignore Visual Studio files
+.vs/
+*.sln
+*.vcxproj
+*.vcproj
+*.user
+*.filters
+
+# Ignore Xcode files
+*.xcodeproj
+*.xcworkspace
+*.xcuserdatad
+
+# Ignore Eclipse files
+.settings/
+.classpath
+.project
+
+# Ignore Sublime Text files
+*.sublime-project
+*.sublime-workspace
+
+# Ignore IntelliJ IDEA files
+*.iml
+.idea/
+
+# Ignore JetBrains Rider files
+*.sln.iml
+*.csproj.iml
+*.idea/
+Rider/
+
+# Ignore macOS files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Ignore thumbnails
+._*
+
+# Ignore system files that might be created on Linux
+Thumbs.db
+.DS_Store
