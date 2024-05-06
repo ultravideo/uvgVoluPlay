@@ -92,6 +92,7 @@ namespace nui
             if (ImGui::Button("Stop", ImVec2(100, 20)))
             {
                 // stopServer = true;
+                scene_view->stop();
                 StartButton_disable = false;
                 captureThread.join();
             }

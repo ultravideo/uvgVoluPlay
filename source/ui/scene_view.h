@@ -14,6 +14,8 @@
 #include <filesystem> // Include the filesystem library for C++17 or later
 #include <iostream>   // Include for std::cout (for demonstration)
 #include <vector>     // Include for std::vector (for collecting filenames)
+#include <mutex> 
+#include <condition_variable>
 
 namespace nui
 {
@@ -76,8 +78,10 @@ namespace nui
 
     void receivePointCloud(std::string serveraddrBuffer);
 
+    void stop();
+
   private:
-    void handleMessage(zmq::message_t message);
+    void handleMessage(zmq::message_t Pmessage, zmq::message_t Cmessage);
 
     std::unique_ptr<nelems::Camera> mCamera;
     std::unique_ptr<nrender::OpenGL_FrameBuffer> mFrameBuffer;
@@ -87,6 +91,10 @@ namespace nui
     glm::vec2 mSize;
     int InputMode = 0;
     bool load_sequence_flag = false;
+
+    std::mutex mtx;
+    std::condition_variable cv;
+    bool stoprender_flag = false;
   };
 }
 
