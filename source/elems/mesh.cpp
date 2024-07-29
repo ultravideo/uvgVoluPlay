@@ -13,15 +13,13 @@ namespace nelems
         create_buffers();
     }
 
-    void Mesh::parse_data()
+    void Mesh::parse_data(std::shared_ptr<nelems::GLPointCloud> &pointCloud)
     {
-        pcl_ready_flag = false;
-        if (!pcl_queue.empty())
+        // if (!pcl_queue.empty())
         {
-            mRenderBufferMgr->parse_buffers(pcl_queue.front());
+            // mRenderBufferMgr->parse_buffers(pcl_queue.front());
+            mRenderBufferMgr->parse_buffers(pointCloud);
         }
-
-        pcl_ready_flag = true;
     }
 
     Mesh::~Mesh()
@@ -87,9 +85,6 @@ namespace nelems
         //         vh.mPos = { geoVec[i][0], geoVec[i][1] , geoVec[i][2] };
 
         //         vh.mColor = { (attVec[i][0])/255.0f, (attVec[i][1]) / 255.0f , (attVec[i][2]) / 255.0f };
-
-        //         add_vertex(vh);
-        //         //add_vertex_index(static_cast<unsigned int>(i));
         //     }
 
         //     // Push the vertices into the pcl_queue
@@ -133,13 +128,12 @@ namespace nelems
         mRenderBufferMgr->set_pointSize(value);
     }
 
-    void Mesh::render()
+    void Mesh::render(size_t index_count)
     {
-        // std::cout << pcl_queue.size() << std::endl;
-
-        if (!pcl_queue.empty() && pcl_ready_flag) 
+        // if (!pcl_queue.empty()) 
+        if (index_count > 0) 
         {
-            mRenderBufferMgr->draw((int)pcl_queue.front()->max_size());
+            mRenderBufferMgr->draw((int)index_count);
         }
     }
 

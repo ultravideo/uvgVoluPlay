@@ -9,7 +9,7 @@ namespace nrender
   class VertexIndexBuffer
   {
   public:
-    VertexIndexBuffer() : mVBO{ 0 }, mVAO{ 0 }, mIBO{ 0 }
+    VertexIndexBuffer() : mVBO{ 0 }, mVAO{ 0 }, mIBO{ 0 }, mVCO{ 0 }//, mVBO_odd{ 0 }, mVCO_odd{ 0 }
     {}
 
     /*virtual void create_buffers(const std::vector<nelems::VertexHolder>& vertices, const std::vector<unsigned int>& indices) = 0;*/
@@ -30,6 +30,10 @@ namespace nrender
   protected:
     GLuint mVBO;
     GLuint mVCO;
+
+    // GLuint mVBO_odd;
+    // GLuint mVCO_odd;
+
     GLuint mVAO;
     GLuint mIBO;
     float pointSize = 1.0f;

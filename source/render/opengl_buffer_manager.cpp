@@ -15,6 +15,9 @@ namespace nrender
     glGenBuffers(1, &mVBO);
     glGenBuffers(1, &mVCO);
 
+    // glGenBuffers(1, &mVBO_odd);
+    // glGenBuffers(1, &mVCO_odd);
+
     glBindVertexArray(mVAO);
   }
 
@@ -34,7 +37,8 @@ namespace nrender
       // // Unbind the vertex array object to prevent accidental modifications
       // glBindVertexArray(0);
 
-
+    //start timer
+    auto start = std::chrono::high_resolution_clock::now();
 
     // Calculate the total size needed for both position and attribute data
     size_t positionSize = (pointCloud->getPositionsVec().size()) * sizeof(glm::vec3);
@@ -60,6 +64,9 @@ namespace nrender
     // Unbind the VCO
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    // std::cout << "Time taken to parse buffers: " << elapsed.count() << "s\n";
   }
 
   void OpenGL_VertexIndexBuffer::draw(int index_count)

@@ -8,6 +8,10 @@ namespace nrender
 {
   class OpenGL_VertexIndexBuffer : public VertexIndexBuffer
   {
+  private:
+    size_t mFrameParse_count = 0;
+    size_t mFrameRender_count = 0;
+
   public:
     OpenGL_VertexIndexBuffer() : VertexIndexBuffer()
     {}

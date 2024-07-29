@@ -7,9 +7,8 @@
 #include "render/opengl_buffer_manager.h"
 #include "elems/input.h"
 #include "elems/pointcloud.h"
-#include "elems/vertex_holder.h"
+#include "communication/portal.hpp"
 
-#include <zmq.hpp>
 #include <thread> 
 #include <filesystem> // Include the filesystem library for C++17 or later
 #include <iostream>   // Include for std::cout (for demonstration)
@@ -66,28 +65,29 @@ namespace nui
 
     void set_mesh(std::shared_ptr<nelems::Mesh> mesh) { mMesh = mesh;}
 
-    void reset_view() { mCamera->reset(); }
+    void reset_view() { mCamera->reset(); std::cout << "Total recieved frames: " << total_frames << std::endl;}
 
-    void clean_pclqueue() { mMesh->clear_queue(); }
+    void clean_pclqueue() { mMesh->clear_queue(); total_frames = 0; }
 
     void set_pointSize(float value) { mMesh->set_point_size(value); };
 
-    void add_pcl(std::shared_ptr<nelems::GLPointCloud> pointCloud);
+    // void add_pcl(std::shared_ptr<nelems::GLPointCloud> pointCloud);
 
-    int get_render_frames();
+    // int get_render_frames();
 
-    void receivePointCloud(std::string serveraddrBuffer);
+    void receivePointCloud();
 
     void stop();
 
   private:
-    void handleMessage(zmq::message_t Pmessage, zmq::message_t Cmessage);
+    // void handleMessage(zmq::message_t Pmessage, zmq::message_t Cmessage);
 
     std::unique_ptr<nelems::Camera> mCamera;
     std::unique_ptr<nrender::OpenGL_FrameBuffer> mFrameBuffer;
     std::unique_ptr<nshaders::Shader> mShader;
     std::unique_ptr<nelems::Light> mLight;
     std::shared_ptr<nelems::Mesh> mMesh;
+    std::shared_ptr<Communication::Portal> mPortal = std::make_shared<Communication::Portal>();
     glm::vec2 mSize;
     int InputMode = 0;
     bool load_sequence_flag = false;
@@ -95,6 +95,9 @@ namespace nui
     std::mutex mtx;
     std::condition_variable cv;
     bool stoprender_flag = false;
+    bool pcl_ready_flag = false;
+    int total_frames = 0;
+    int draw_points = 0;
   };
 }
 

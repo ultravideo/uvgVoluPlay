@@ -10,7 +10,7 @@
 
 #include "render/render_base.h"
 #include "elems/pointcloud.h"
-#include "elems/vertex_holder.h"
+// #include "elems/vertex_holder.h"
 #include "elems/element.h"
 
 namespace nelems
@@ -26,12 +26,6 @@ namespace nelems
 
     void load(const std::string& filepath);
 
-    void add_vertex(const VertexHolder& vertex) { mVertices.push_back(vertex);  }
-
-    void add_vertex_index(unsigned int vertex_idx) { mVertexIndices.push_back(vertex_idx); }
-
-    std::vector<unsigned int> get_vertex_indices() { return mVertexIndices; }
-
     void update(nshaders::Shader* shader) override
     {
       // pbr color
@@ -41,20 +35,20 @@ namespace nelems
       //shader->set_f1(mMetallic, "metallic");
       //shader->set_f1(1.0f, "ao");
 
-      if (!pcl_queue.empty()) 
-      {       
-          if (pcl_queue.size() == 2 )
-          {
-              pcl_queue.pop();
-              parse_data();
-              total_frames++;
-          }
-          else if (pcl_queue.size() > 2)
-          {
-              clear_queue();
-              total_frames--;
-          }  
-      }
+      // if (!pcl_queue.empty()) 
+      // {       
+      //     if (pcl_queue.size() == 2 )
+      //     {
+      //         pcl_queue.pop();
+      //         parse_data();
+      //         total_frames++;
+      //     }
+      //     else if (pcl_queue.size() > 2)
+      //     {
+      //         clear_queue();
+      //         total_frames--;
+      //     }  
+      // }
     }
     
     glm::vec3 mColor = { 1.0f, 0.0f, 0.0f };
@@ -63,13 +57,13 @@ namespace nelems
 
     void init();
 
-    void parse_data();
+    void parse_data(std::shared_ptr<nelems::GLPointCloud> &pointCloud);
 
     void create_buffers();
 
     void delete_buffers();
 
-    void render();
+    void render(size_t index_count);
 
     void bind();
 
@@ -87,10 +81,6 @@ namespace nelems
     
     // Buffers manager
     std::unique_ptr<nrender::VertexIndexBuffer> mRenderBufferMgr;
-    
-    // Vertices and indices
-    std::vector<VertexHolder> mVertices;
-    std::vector<unsigned int> mVertexIndices;
     std::queue<std::shared_ptr<nelems::GLPointCloud>> pcl_queue;
 
     std::mutex mtx;

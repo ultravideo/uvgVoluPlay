@@ -34,10 +34,9 @@ namespace nui
     private:
         std::string get_serialNumber(int index);
         void post_handle(nui::SceneView* scene_view);
-        void handleMessage(nui::SceneView* scene_view, zmq::message_t message );
+        // void handleMessage(nui::SceneView* scene_view, zmq::message_t message );
 
         std::function<void(const std::string&)> mPLYLoadCallback;
-        std::function<void()> loadGLPclFunction;
         std::shared_ptr<std::thread> LoadPclThreadPtr;
         bool startLoadPclThread = true;
 
@@ -56,18 +55,8 @@ namespace nui
         bool StartButton_disable = false;
 
         //Kinect devices
-        std::thread captureThread = std::thread();
+        std::thread captureThread;
         char serveraddrBuffer[256] = "tcp://*:5555"; // Buffer to hold the text
         bool stopServer = false;
-
-
-        struct FPS_data
-        {
-            float values[90] = {};
-            float curFPS = 0.0f;
-            int values_offset = 0;
-            std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
-        } fps_data;
-
     };
 }
