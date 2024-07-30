@@ -76,6 +76,7 @@
         "xutility": "cpp",
         "map": "cpp",
         "regex": "cpp",
-        "xtree": "cpp"
+        "xtree": "cpp",
+        "cassert": "cpp"
     }
 }

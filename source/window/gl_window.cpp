@@ -77,7 +77,7 @@ namespace nwindow
     mUICtx->pre_render();
 
     // render scene to framebuffer and add it to scene view
-    mSceneView->render();
+    mSceneView->render_zmq();
 
     //mPropertyPanel->render(mSceneView.get());
 

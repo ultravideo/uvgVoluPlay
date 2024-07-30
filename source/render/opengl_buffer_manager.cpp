@@ -66,7 +66,8 @@ namespace nrender
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;
-    // std::cout << "Time taken to parse buffers: " << elapsed.count() << "s\n";
+    std::cout << "Time taken to parse buffers: " << elapsed.count() << "s\n";
+
   }
 
   void OpenGL_VertexIndexBuffer::draw(int index_count)

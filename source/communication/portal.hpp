@@ -8,7 +8,9 @@
 #include <queue>
 
 #include "elems/pointcloud.h"
+#include "elems/mesh.h"
 #include "utils/log.hpp"
+#include "utils/threadqueue.hpp"
 
 #include <mutex>
 #include <condition_variable>
@@ -26,11 +28,9 @@ namespace Communication {
         // Queue for position messages
         std::queue<zmq::message_t> positionMessages;
 
-        // Queue for point cloud data
-        std::queue<std::shared_ptr<nelems::GLPointCloud>> pointClouds;
-
         bool stop_flag = false;
         std::condition_variable receive_message_cv;
+        std::shared_ptr<std::queue<std::shared_ptr<nelems::GLPointCloud>>> pcl_queue;
 
     public:
         Portal();
@@ -46,6 +46,13 @@ namespace Communication {
         void clear_front_point_cloud();
 
         void zmq_run();
+
+        void set_pcl_queue(std::shared_ptr<std::queue<std::shared_ptr<nelems::GLPointCloud>>> &pcl_queue);
+
+    private:
+        void parse_data_to_pcl(std::shared_ptr<nelems::GLPointCloud> &pointCloud, zmq::message_t &Pmessage, zmq::message_t &Cmessage);
+        void init_mesh(std::shared_ptr<nelems::Mesh> &mesh);
+        void parse_data_to_mesh(std::shared_ptr<nelems::Mesh> &mesh, std::shared_ptr<nelems::GLPointCloud> &pointCloud);
     };
 };
 

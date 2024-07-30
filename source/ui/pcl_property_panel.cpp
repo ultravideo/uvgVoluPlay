@@ -7,8 +7,6 @@ namespace nui
 
     void PCL_Property_Panel::render(nui::SceneView* scene_view)
     {
-        //auto mesh = scene_view->get_mesh();
-
         ImGui::Begin("Input");
 
         if (ImGui::BeginCombo("##inputlist", items[selectedItem])) // The ##combo is a unique identifier
@@ -41,7 +39,7 @@ namespace nui
                 }
                 ImGui::SameLine(0, 5.0f);
                 ImGui::Text(mCurrentPLYFile.c_str());
-                set_mesh_load_callback([this, scene_view](std::string filepath) { scene_view->load_mesh(filepath); });
+                // set_mesh_load_callback([this, scene_view](std::string filepath) { scene_view->load_mesh(filepath); });
                 scene_view->set_input(selectedItem);
             }
             break;
@@ -55,7 +53,7 @@ namespace nui
                 }
                 ImGui::SameLine(0, 5.0f);
                 ImGui::Text(mCurrentPLYFolder.c_str());
-                set_mesh_load_callback([this, scene_view](std::string filepath) { scene_view->load_sequence(filepath); });
+                // set_mesh_load_callback([this, scene_view](std::string filepath) { scene_view->load_sequence(filepath); });
                 scene_view->set_input(selectedItem);
             }
             break;
@@ -101,12 +99,12 @@ namespace nui
                 scene_view->reset_view();
             }
 
-            ImGui::SameLine();
+            // ImGui::SameLine();
 
-            if (ImGui::Button("Clear queue", ImVec2(100, 20)))
-            {
-                scene_view->clean_pclqueue();
-            }
+            // if (ImGui::Button("Clear View", ImVec2(100, 20)))
+            // {
+            //     scene_view->clean_pclqueue();
+            // }
         }
     
         ImGui::End();

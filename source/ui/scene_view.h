@@ -32,9 +32,12 @@ namespace nui
       mLight = std::make_unique<nelems::Light>();
 
       mCamera = std::make_unique<nelems::Camera>(glm::vec3(0, 10, 20), 45.0f, 1.3f, 0.1f, 2000.0f);
+
       if (!mMesh)
           mMesh = std::make_shared<nelems::Mesh>();
       mMesh->init();
+
+      mPortal->set_pcl_queue(pcl_queue);
     }
 
     ~SceneView()
@@ -49,55 +52,35 @@ namespace nui
 
     void set_input(int mode);
 
-    void render();
+    void render_zmq();
 
-    void load_mesh(const std::string& filepath);
-
-    void load_sequence(const std::string& folderpath);
-
-    std::shared_ptr<nelems::Mesh> get_mesh() { return mMesh; }
+    void render_sequence(); // Later
     
     void on_mouse_move(double x, double y, nelems::EInputButton button);
 
     void on_mouse_wheel(double delta);
 
-    void clear_mesh() { mMesh->delete_buffers(); }
-
-    void set_mesh(std::shared_ptr<nelems::Mesh> mesh) { mMesh = mesh;}
-
-    void reset_view() { mCamera->reset(); std::cout << "Total recieved frames: " << total_frames << std::endl;}
-
-    void clean_pclqueue() { mMesh->clear_queue(); total_frames = 0; }
-
-    void set_pointSize(float value) { mMesh->set_point_size(value); };
-
-    // void add_pcl(std::shared_ptr<nelems::GLPointCloud> pointCloud);
-
-    // int get_render_frames();
+    void reset_view() { mCamera->reset(); }
 
     void receivePointCloud();
 
     void stop();
 
-  private:
-    // void handleMessage(zmq::message_t Pmessage, zmq::message_t Cmessage);
+    void set_pointSize(float pointSize);
 
+  private:
     std::unique_ptr<nelems::Camera> mCamera;
     std::unique_ptr<nrender::OpenGL_FrameBuffer> mFrameBuffer;
     std::unique_ptr<nshaders::Shader> mShader;
     std::unique_ptr<nelems::Light> mLight;
-    std::shared_ptr<nelems::Mesh> mMesh;
+    std::shared_ptr<nelems::Mesh> mMesh = nullptr;
+
+    std::shared_ptr<std::queue<std::shared_ptr<nelems::GLPointCloud>>> pcl_queue = std::make_shared<std::queue<std::shared_ptr<nelems::GLPointCloud>>>();
     std::shared_ptr<Communication::Portal> mPortal = std::make_shared<Communication::Portal>();
+
     glm::vec2 mSize;
     int InputMode = 0;
-    bool load_sequence_flag = false;
-
-    std::mutex mtx;
-    std::condition_variable cv;
-    bool stoprender_flag = false;
-    bool pcl_ready_flag = false;
-    int total_frames = 0;
-    int draw_points = 0;
+    float mpointSize = 1.0f;
   };
 }
 

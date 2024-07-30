@@ -22,20 +22,24 @@ namespace Communication {
     }
 
     void Portal::get_point_cloud(std::shared_ptr<nelems::GLPointCloud> &pointCloud) {
-        if (pointClouds.empty()) {
-            pointCloud = nullptr;
-            return;
-        }
+        // if (pointClouds.empty()) {
+        //     pointCloud = nullptr;
+        //     return;
+        // }
         
-        pointCloud = pointClouds.front();
+        // pointCloud = pointClouds.front();
     }
 
     void Portal::clear_front_point_cloud() {
-        if (pointClouds.size() < 2) {
-            return;
-        }
+        // if (pointClouds.size() < 2) {
+        //     return;
+        // }
 
-        pointClouds.pop();
+        // pointClouds.pop();
+    }
+
+    void Portal::set_pcl_queue(std::shared_ptr<std::queue<std::shared_ptr<nelems::GLPointCloud>>> &pcl_queue_from_scene_view) {
+        this->pcl_queue = pcl_queue_from_scene_view;
     }
 
     void Portal::zmq_run() {
@@ -95,8 +99,8 @@ namespace Communication {
 
             // Add the received point to the point cloud
             pointCloud->parse(positions, attributes);
-            pointClouds.push(pointCloud);
-
+            pcl_queue->push(pointCloud);
+            
             positionMessages.pop();
             colorMessages.pop();
         }

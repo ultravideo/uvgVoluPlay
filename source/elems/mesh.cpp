@@ -8,18 +8,14 @@ namespace nelems
 {
     void Mesh::init()
     {
-        
         mRenderBufferMgr = std::make_unique<nrender::OpenGL_VertexIndexBuffer>();
         create_buffers();
     }
 
     void Mesh::parse_data(std::shared_ptr<nelems::GLPointCloud> &pointCloud)
     {
-        // if (!pcl_queue.empty())
-        {
-            // mRenderBufferMgr->parse_buffers(pcl_queue.front());
-            mRenderBufferMgr->parse_buffers(pointCloud);
-        }
+        mRenderBufferMgr->parse_buffers(pointCloud);
+        currnet_points = pointCloud->max_size();
     }
 
     Mesh::~Mesh()
@@ -94,9 +90,7 @@ namespace nelems
 
     void Mesh::create_buffers()
     {
-        //mRenderBufferMgr->create_buffers(mVertices, mVertexIndices);
          mRenderBufferMgr->create_buffers();
-        
     }
 
     void Mesh::delete_buffers()
@@ -114,36 +108,23 @@ namespace nelems
         mRenderBufferMgr->unbind();
     }
 
-    void Mesh::clear_queue()
-    {
-        if (!pcl_queue.empty())
-        {
-            std::queue<std::shared_ptr<nelems::GLPointCloud>> empty;
-            std::swap(pcl_queue, empty);
-        }
+    void Mesh::render()
+    { 
+        if (currnet_points == 0)
+            return;
+        bind();
+        mRenderBufferMgr->draw(currnet_points);
+        unbind();
     }
 
-    void Mesh::set_point_size(float value)
+    void Mesh::set_data(std::shared_ptr<nelems::GLPointCloud> &pointCloud)
     {
-        mRenderBufferMgr->set_pointSize(value);
+        mRenderBufferMgr->parse_buffers(pointCloud);
     }
 
-    void Mesh::render(size_t index_count)
+    void Mesh::set_pointSize(float pointSize)
     {
-        // if (!pcl_queue.empty()) 
-        if (index_count > 0) 
-        {
-            mRenderBufferMgr->draw((int)index_count);
-        }
+        mRenderBufferMgr->set_pointSize(pointSize);
     }
 
-    void Mesh::add_pcl(std::shared_ptr<nelems::GLPointCloud> pointCloud)
-    {
-        pcl_queue.push(pointCloud);
-    }
-
-    int Mesh::get_total_frames()
-    {
-        return total_frames;
-    }
 }

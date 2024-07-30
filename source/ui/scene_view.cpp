@@ -30,34 +30,7 @@ namespace nui
         mCamera->on_mouse_wheel(delta);
     }
 
-    void SceneView::load_mesh(const std::string& filepath)
-    {
-        // mMesh->clear_queue();
-        // mMesh->load(filepath);
-        // // mMesh->parse_data();
-    }
-
-    void SceneView::load_sequence(const std::string& folderpath)
-    {
-        load_sequence_flag = false;
-        // Iterate over the directory
-        for (const auto& entry : std::filesystem::directory_iterator(folderpath))
-        {
-            // Check if the entry is a regular file
-            if (entry.is_regular_file())
-            {
-                if (entry.path().extension() == ".ply")
-                {
-                    // Add the file path to the list of files
-                    mMesh->load(entry.path().string().c_str());
-                }
-            }
-        }
-
-        load_sequence_flag = true;
-    }
-
-    void SceneView::render()
+    void SceneView::render_zmq()
     {
         mShader->use();
 
@@ -67,21 +40,18 @@ namespace nui
 
         if (mMesh)
         {
-            // if (InputMode > 0)// && load_sequence_flag)
-            // {
-            //     mMesh->update(mShader.get()); 
-            // }
-
-            std::shared_ptr<nelems::GLPointCloud> pointCloud = nullptr;
-             
-            mPortal->clear_front_point_cloud();
-            mPortal->get_point_cloud(pointCloud);
-            if (pointCloud)
+            if (!pcl_queue->empty())
             {                
-                mMesh->parse_data(pointCloud);
-                draw_points = static_cast<int>(pointCloud->max_size());
+                mMesh->parse_data(pcl_queue->front());
             }
-            mMesh->render(draw_points);
+            mMesh->render();
+        }
+
+        // Make sure that we always have 1 pcl left to visualize, otherwise pcl will be deleted 
+        // due to differnet in speed of rendering and receiving
+        if (pcl_queue->size() >= 2) 
+        {
+            pcl_queue->pop();
         }
 
         mFrameBuffer->unbind();
@@ -101,17 +71,16 @@ namespace nui
         ImGui::End();
     }
 
+    void SceneView::set_pointSize(float pointSize)
+    {
+        mpointSize = pointSize;
+    }
+
 
     void SceneView::receivePointCloud()
     {
         mPortal->zmq_run();
     }
-
-    // void SceneView::add_pcl(std::shared_ptr<nelems::GLPointCloud> pointCloud) { 
-    //     // load_sequence_flag = false;
-    //     mMesh->add_pcl(pointCloud);
-    //     // load_sequence_flag = true; 
-    // }
 
     void SceneView::stop()
     {

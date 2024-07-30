@@ -29,8 +29,6 @@ namespace nui
             mPLYLoadCallback = callback;
         }
 
-        void capturePointCloud(nui::SceneView* scene_view);
-
     private:
         std::string get_serialNumber(int index);
         void post_handle(nui::SceneView* scene_view);
