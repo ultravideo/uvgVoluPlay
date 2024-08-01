@@ -8,20 +8,14 @@ namespace nelems
 {
     void Mesh::init()
     {
-        
         mRenderBufferMgr = std::make_unique<nrender::OpenGL_VertexIndexBuffer>();
         create_buffers();
     }
 
-    void Mesh::parse_data()
+    void Mesh::parse_data(std::shared_ptr<nelems::GLPointCloud> &pointCloud)
     {
-        pcl_ready_flag = false;
-        if (!pcl_queue.empty())
-        {
-            mRenderBufferMgr->parse_buffers(pcl_queue.front());
-        }
-
-        pcl_ready_flag = true;
+        mRenderBufferMgr->parse_buffers(pointCloud);
+        currnet_points = pointCloud->max_size();
     }
 
     Mesh::~Mesh()
@@ -87,9 +81,6 @@ namespace nelems
         //         vh.mPos = { geoVec[i][0], geoVec[i][1] , geoVec[i][2] };
 
         //         vh.mColor = { (attVec[i][0])/255.0f, (attVec[i][1]) / 255.0f , (attVec[i][2]) / 255.0f };
-
-        //         add_vertex(vh);
-        //         //add_vertex_index(static_cast<unsigned int>(i));
         //     }
 
         //     // Push the vertices into the pcl_queue
@@ -99,9 +90,7 @@ namespace nelems
 
     void Mesh::create_buffers()
     {
-        //mRenderBufferMgr->create_buffers(mVertices, mVertexIndices);
          mRenderBufferMgr->create_buffers();
-        
     }
 
     void Mesh::delete_buffers()
@@ -119,37 +108,19 @@ namespace nelems
         mRenderBufferMgr->unbind();
     }
 
-    void Mesh::clear_queue()
-    {
-        if (!pcl_queue.empty())
-        {
-            std::queue<std::shared_ptr<nelems::GLPointCloud>> empty;
-            std::swap(pcl_queue, empty);
-        }
-    }
-
-    void Mesh::set_point_size(float value)
-    {
-        mRenderBufferMgr->set_pointSize(value);
-    }
-
     void Mesh::render()
-    {
-        // std::cout << pcl_queue.size() << std::endl;
-
-        if (!pcl_queue.empty() && pcl_ready_flag) 
-        {
-            mRenderBufferMgr->draw((int)pcl_queue.front()->max_size());
+    { 
+        if (currnet_points == 0) {
+            return;
         }
+        bind();
+        mRenderBufferMgr->draw(currnet_points);
+        unbind();
     }
 
-    void Mesh::add_pcl(std::shared_ptr<nelems::GLPointCloud> pointCloud)
+    void Mesh::set_pointSize(float pointSize)
     {
-        pcl_queue.push(pointCloud);
+        mRenderBufferMgr->set_pointSize(pointSize);
     }
 
-    int Mesh::get_total_frames()
-    {
-        return total_frames;
-    }
 }

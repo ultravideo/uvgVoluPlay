@@ -1,13 +1,12 @@
 #include "pch.h"
 #include "pcl_property_panel.h"
+#include "utils/log.hpp"
 
 namespace nui
 {
 
     void PCL_Property_Panel::render(nui::SceneView* scene_view)
     {
-        //auto mesh = scene_view->get_mesh();
-
         ImGui::Begin("Input");
 
         if (ImGui::BeginCombo("##inputlist", items[selectedItem])) // The ##combo is a unique identifier
@@ -40,7 +39,7 @@ namespace nui
                 }
                 ImGui::SameLine(0, 5.0f);
                 ImGui::Text(mCurrentPLYFile.c_str());
-                set_mesh_load_callback([this, scene_view](std::string filepath) { scene_view->load_mesh(filepath); });
+                // set_mesh_load_callback([this, scene_view](std::string filepath) { scene_view->load_mesh(filepath); });
                 scene_view->set_input(selectedItem);
             }
             break;
@@ -54,7 +53,7 @@ namespace nui
                 }
                 ImGui::SameLine(0, 5.0f);
                 ImGui::Text(mCurrentPLYFolder.c_str());
-                set_mesh_load_callback([this, scene_view](std::string filepath) { scene_view->load_sequence(filepath); });
+                // set_mesh_load_callback([this, scene_view](std::string filepath) { scene_view->load_sequence(filepath); });
                 scene_view->set_input(selectedItem);
             }
             break;
@@ -64,37 +63,22 @@ namespace nui
             ImGui::SameLine();
             ImGui::InputText(" s", serveraddrBuffer, IM_ARRAYSIZE(serveraddrBuffer));
 
-            if (StartButton_disable)
-            {
-                ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-                ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-            }
             if (ImGui::Button("Start", ImVec2(100, 20)))
             {
                 startLoadPclThread = false;
                 scene_view->set_input(selectedItem);
                 StartButton_disable = true;
-                fps_data.start_time = std::chrono::high_resolution_clock::now();
-                
-                fps_data.values[90] = {};
-                fps_data.curFPS = 0.0f;
-                fps_data.values_offset = 0;
+                utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Signal to start Portal\n");
                 break;
-            }
-            if (StartButton_disable)
-            {
-                ImGui::PopItemFlag();
-                ImGui::PopStyleVar();
             }
 
             ImGui::SameLine();
 
             if (ImGui::Button("Stop", ImVec2(100, 20)))
             {
-                // stopServer = true;
                 scene_view->stop();
                 StartButton_disable = false;
-                captureThread.join();
+                utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Signal to stop Portal\n");
             }
 
             break;
@@ -115,38 +99,14 @@ namespace nui
                 scene_view->reset_view();
             }
 
-            ImGui::SameLine();
+            // ImGui::SameLine();
 
-            if (ImGui::Button("Clear queue", ImVec2(100, 20)))
-            {
-                scene_view->clean_pclqueue();
-            }
+            // if (ImGui::Button("Clear View", ImVec2(100, 20)))
+            // {
+            //     scene_view->clean_pclqueue();
+            // }
         }
-        
-        ImGui::Separator();
-        if (ImGui::CollapsingHeader("Statistics"))
-        {
-
-            char overlay[32];
-            if (StartButton_disable)
-            {
-                std::chrono::duration<double> durationProcess = std::chrono::high_resolution_clock::now() - fps_data.start_time;
-                
-                if (durationProcess.count() != 0.0)
-                {
-                    fps_data.curFPS = static_cast<float>(scene_view->get_render_frames())/durationProcess.count();
-                    // std::cerr << "FPS: " << fps_data.curFPS << std::endl;
-                    fps_data.values[fps_data.values_offset] = fps_data.curFPS;
-                    fps_data.values_offset = (fps_data.values_offset + 1) % IM_ARRAYSIZE(fps_data.values);
-                }
-                
-            }
-            sprintf_s(overlay, "avg rate: %f FPS", fps_data.curFPS);
-            ImGui::Text("Frame rate:");
-            ImGui::SameLine();
-            ImGui::PlotLines("", fps_data.values, IM_ARRAYSIZE(fps_data.values), fps_data.values_offset, overlay, 0.0f, 30.0f, ImVec2(0, 100.0f));
-        }
-
+    
         ImGui::End();
 
         post_handle(scene_view);
@@ -188,76 +148,19 @@ namespace nui
         }
         else if (selectedItem == 2 && !startLoadPclThread)
         {
-            loadGLPclFunction = [this, scene_view]() {
-                scene_view->receivePointCloud(serveraddrBuffer);
-            };
             
+            std::function<void()> loadGLPclFunction = [this, scene_view]() { scene_view->receivePointCloud(); };
+
+            if (captureThread.joinable())
+            {
+                captureThread.join();
+            }
             // Create the thread using the stored std::function object
             // std::thread captureThread(loadGLPclFunction);
             captureThread = std::thread(loadGLPclFunction);
-            captureThread.detach();
-
+            // captureThread.detach();
+std::cout << "Triggered\n";
             startLoadPclThread = true;
         }
     }
-
-    // void PCL_Property_Panel::handleMessage(nui::SceneView* scene_view, zmq::message_t message ) {
-    //     nelems::GLPointCloud pointCloud;
-
-    //     size_t numPoints = message.size() / (2 * sizeof(glm::vec3));
-    //     std::shared_ptr<std::vector<glm::vec3>> data = std::make_shared<std::vector<glm::vec3>>(reinterpret_cast<const glm::vec3*>(message.data()), reinterpret_cast<const glm::vec3*>(message.data()) + 2* numPoints);
-
-    //     // Form the received data into vectors
-    //     std::shared_ptr<std::vector<glm::vec3>> positions = std::make_shared<std::vector<glm::vec3>>(data->begin(), data->begin() + numPoints);
-    //     std::shared_ptr<std::vector<glm::vec3>> attributes = std::make_shared<std::vector<glm::vec3>>(data->begin() + numPoints, data->end());
-
-    //     // Add the received point to the point cloud
-    //     pointCloud.parse(positions, attributes);
-    //     pointCloud.Clear();
-    // }
-
-    // void PCL_Property_Panel::capturePointCloud(nui::SceneView* scene_view)
-    // {
-        
-    //     // // initialize the zmq context with a single IO thread
-    //     zmq::context_t context{1};
-    //     // construct a REP (reply) socket and bind to interface
-    //     zmq::socket_t socket{context, zmq::socket_type::rep};
-    //     socket.bind(serveraddrBuffer);
-
-    //     // Queue for messages
-    //     std::queue<zmq::message_t> messages;
-
-    //     std::thread processThread([this, &messages, scene_view = std::move(scene_view)]() {
-    //             while (true) {
-    //                 if (messages.empty()) {
-
-    //                     continue;
-    //                 }
-    //                 handleMessage(scene_view , std::move(messages.front()));
-    //                 messages.pop();
-    //             }
-    //         });
-
-    //     // Receive the point cloud data from the client
-    //     while (true) {
-
-    //         // Receive the message from the client
-    //         zmq::message_t message;
-    //         auto res = socket.recv(message, zmq::recv_flags::none);
-    //         if (!res.has_value()) {
-    //             continue;
-    //         }
-
-    //         messages.push(std::move(message));
-
-    //         // Send a confirmation reply back to the client
-    //         socket.send(zmq::buffer("Received point"), zmq::send_flags::none);
-    //     }
-
-    //     // Close the socket (This part of code is not reachable because of the infinite loop)
-    //     socket.close();
-         
-    //     StartButton_disable = false;
-    // }
 }

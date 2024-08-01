@@ -66,6 +66,10 @@ set(Headers
     "source/utils/str_utils.h"
     "source/window/gl_window.h"
     "source/window/window.h"
+    "source/utils/chrono.hpp"
+    "source/utils/log.hpp"
+    "source/utils/threadqueue.hpp"
+    "source/communication/portal.hpp"
 )
 source_group("Headers" FILES ${Headers})
 
@@ -95,6 +99,9 @@ set(Sources
     "source/ui/scene_view.cpp"
     "source/ui/stat_panel.cpp"
     "source/window/gl_window.cpp"
+    "source/utils/log.cpp"
+    "source/utils/threadqueue.cpp"
+    "source/communication/portal.cpp"
 )
 source_group("Sources" FILES ${Sources})
 
@@ -137,6 +144,10 @@ if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
         target_link_libraries(${PROJECT_NAME} OpenMP::OpenMP_CXX)
     endif()
 
+    find_package(OpenCL REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${OpenCL_LIBRARIES})
+    target_include_directories(${PROJECT_NAME} PRIVATE ${OpenCL_INCLUDE_DIRS})
+
 endif()
 
 ################################################################################
@@ -174,6 +185,9 @@ if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
     )
 endif()
 
-# Copy folder A to build/tool/
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/shaders
-     DESTINATION ${CMAKE_BINARY_DIR}/Release)
+# Define installation destinations
+set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/build/bin" CACHE PATH "Install path prefix" FORCE)
+set(INSTALL_CONFIG_DIR "Release")
+
+install(DIRECTORY ${CMAKE_BINARY_DIR}/${INSTALL_CONFIG_DIR}/ DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/shaders DESTINATION ${CMAKE_INSTALL_PREFIX})

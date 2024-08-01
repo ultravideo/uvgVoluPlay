@@ -1,0 +1,99 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "mkdir-build",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                "if (!(Test-Path -Path \"${workspaceFolder}\\build\" -PathType Container)) { mkdir \"${workspaceFolder}\\build\" }"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "cmake-configure",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "..",
+                "--preset=default"
+            ],
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceFolder}/build"
+            }
+        },
+        {
+            "label": "cmake-build-debug",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                ".",
+                "--config",
+                "Debug",
+                "--parallel",
+                "--target",
+                "install"
+            ],
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceFolder}/build"
+            }
+        },
+        {
+            "label": "cmake-build-release",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                ".",
+                "--config",
+                "release",
+                "--parallel",
+                "--target",
+                "install"
+            ],
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceFolder}/build"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "CMake: Debug build",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "mkdir-build",
+                "cmake-configure",
+                "cmake-build-debug"
+            ],
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "detail": "Build-Only"
+        },
+        {
+            "type": "shell",
+            "label": "CMake: Release build",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "mkdir-build",
+                "cmake-configure",
+                "cmake-build-release"
+            ],
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "detail": "Build-Only"
+        },
+    ]
+}
