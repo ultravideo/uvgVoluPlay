@@ -31,6 +31,7 @@ namespace Communication {
         bool stop_flag = false;
         std::condition_variable receive_message_cv;
         std::shared_ptr<std::queue<std::shared_ptr<nelems::GLPointCloud>>> pcl_queue;
+        std::shared_ptr<nelems::Mesh> mMesh = nullptr;
 
     public:
         Portal();
@@ -47,13 +48,9 @@ namespace Communication {
 
         void zmq_run();
 
-        void set_pcl_queue(std::shared_ptr<std::queue<std::shared_ptr<nelems::GLPointCloud>>> &pcl_queue);
+        void set_data_stream(std::shared_ptr<std::queue<std::shared_ptr<nelems::GLPointCloud>>> &pcl_queue, std::shared_ptr<nelems::Mesh> &mesh);
 
-    private:
-        void parse_data_to_pcl(std::shared_ptr<nelems::GLPointCloud> &pointCloud, zmq::message_t &Pmessage, zmq::message_t &Cmessage);
-        void init_mesh(std::shared_ptr<nelems::Mesh> &mesh);
-        void parse_data_to_mesh(std::shared_ptr<nelems::Mesh> &mesh, std::shared_ptr<nelems::GLPointCloud> &pointCloud);
-    };
+  };
 };
 
 #endif // PORTAL_HPP

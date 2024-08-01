@@ -38,8 +38,10 @@ namespace Communication {
         // pointClouds.pop();
     }
 
-    void Portal::set_pcl_queue(std::shared_ptr<std::queue<std::shared_ptr<nelems::GLPointCloud>>> &pcl_queue_from_scene_view) {
+    void Portal::set_data_stream(std::shared_ptr<std::queue<std::shared_ptr<nelems::GLPointCloud>>> &pcl_queue_from_scene_view,
+        std::shared_ptr<nelems::Mesh> &mesh_from_scene_view) {
         this->pcl_queue = pcl_queue_from_scene_view;
+        this->mMesh = mesh_from_scene_view;
     }
 
     void Portal::zmq_run() {
@@ -79,15 +81,36 @@ namespace Communication {
                 }
             }
         });
+
+        std::mutex mesh_mutex;
+        std::condition_variable mesh_cv;
+        std::thread meshLoaderThread([this, &mesh_mutex, &mesh_cv]() { 
+          std::unique_lock<std::mutex> lck(mesh_mutex);
+          while (!stop_flag)
+          {
+            mesh_cv.wait(lck, [this] { return !pcl_queue->empty(); });
+            // Make sure that we always have 1 pcl left to visualize, otherwise pcl will be deleted 
+            // due to differnet in speed of rendering and receiving
+            // if (pcl_queue->size() >= 2) 
+            // {
+            //     pcl_queue->pop();
+                // std::shared_ptr<nelems::Mesh> mMesh = std::make_shared<nelems::Mesh>();
+                // mMesh->init();
+                // mMesh->parse_data(pcl_queue->front());
+            // }
+          }
+          
+       }); 
+
+        std::unique_lock<std::mutex> lck(receive_message_mutex);
         
         while (true) {
-            std::unique_lock<std::mutex> lck(receive_message_mutex);
             receive_message_cv.wait(lck, [this] { return (!colorMessages.empty() && !positionMessages.empty()) || stop_flag; });
 
             if (stop_flag) {
                 break;
             }
-
+            // auto start = std::chrono::high_resolution_clock::now();
             std::shared_ptr<nelems::GLPointCloud> pointCloud = std::make_shared<nelems::GLPointCloud>();
 
             auto Pmessage = std::move(positionMessages.front());
@@ -100,9 +123,16 @@ namespace Communication {
             // Add the received point to the point cloud
             pointCloud->parse(positions, attributes);
             pcl_queue->push(pointCloud);
+            mesh_cv.notify_one();
+
+            // mMesh->parse_data(pcl_queue->back());   
             
             positionMessages.pop();
             colorMessages.pop();
+
+            // auto end = std::chrono::high_resolution_clock::now();
+            // std::chrono::duration<double> elapsed = end - start;
+            // std::cout << "Time taken to create PCL: " << elapsed.count() << "s\n";
         }
 
         utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Stopping Components Threads\n");

@@ -2,8 +2,6 @@
 #include "scene_view.h"
 
 #include "imgui.h"
-#include <chrono>
-#include <thread>
 
 namespace nui
 {
@@ -40,19 +38,31 @@ namespace nui
 
         if (mMesh)
         {
-            if (!pcl_queue->empty())
+            if (!pcl_queue->empty() && parse_new_pcl)
             {                
                 mMesh->parse_data(pcl_queue->front());
+                parse_new_pcl = false;
             }
             mMesh->render();
         }
 
-        // Make sure that we always have 1 pcl left to visualize, otherwise pcl will be deleted 
-        // due to differnet in speed of rendering and receiving
+        // // Make sure that we always have 1 pcl left to visualize, otherwise pcl will be deleted 
+        // // due to differnet in speed of rendering and receiving
         if (pcl_queue->size() >= 2) 
         {
             pcl_queue->pop();
+            parse_new_pcl = true;
         }
+
+        // if (!mesh_queue->empty() && mesh_queue->front())
+        // {
+        //     std::cout << "Queue size: " << mesh_queue->size() << std::endl;
+        //     mesh_queue->front()->render();
+        //     if (mesh_queue->size() >= 2)
+        //     {
+        //         mesh_queue->pop();
+        //     }
+        // }
 
         mFrameBuffer->unbind();
 

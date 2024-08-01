@@ -15,6 +15,7 @@
 #include <vector>     // Include for std::vector (for collecting filenames)
 #include <mutex> 
 #include <condition_variable>
+#include "utils/log.hpp"
 
 namespace nui
 {
@@ -33,11 +34,12 @@ namespace nui
 
       mCamera = std::make_unique<nelems::Camera>(glm::vec3(0, 10, 20), 45.0f, 1.3f, 0.1f, 2000.0f);
 
-      if (!mMesh)
+      if (!mMesh) {
           mMesh = std::make_shared<nelems::Mesh>();
+      }
       mMesh->init();
 
-      mPortal->set_pcl_queue(pcl_queue);
+      mPortal->set_data_stream(pcl_queue, mMesh);
     }
 
     ~SceneView()
@@ -67,7 +69,7 @@ namespace nui
     void stop();
 
     void set_pointSize(float pointSize);
-
+  
   private:
     std::unique_ptr<nelems::Camera> mCamera;
     std::unique_ptr<nrender::OpenGL_FrameBuffer> mFrameBuffer;
@@ -75,12 +77,16 @@ namespace nui
     std::unique_ptr<nelems::Light> mLight;
     std::shared_ptr<nelems::Mesh> mMesh = nullptr;
 
+
+    std::shared_ptr<std::queue<std::shared_ptr<nelems::Mesh>>> mesh_queue = std::make_shared<std::queue<std::shared_ptr<nelems::Mesh>>>();
     std::shared_ptr<std::queue<std::shared_ptr<nelems::GLPointCloud>>> pcl_queue = std::make_shared<std::queue<std::shared_ptr<nelems::GLPointCloud>>>();
     std::shared_ptr<Communication::Portal> mPortal = std::make_shared<Communication::Portal>();
 
     glm::vec2 mSize;
     int InputMode = 0;
     float mpointSize = 1.0f;
+
+    bool parse_new_pcl = false;
   };
 }
 

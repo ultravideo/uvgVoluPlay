@@ -9,8 +9,9 @@ namespace nrender
   class VertexIndexBuffer
   {
   public:
-    VertexIndexBuffer() : mVBO{ 0 }, mVAO{ 0 }, mIBO{ 0 }, mVCO{ 0 }//, mVBO_odd{ 0 }, mVCO_odd{ 0 }
-    {}
+    VertexIndexBuffer() : mVAO_parsing_id{ 0 }//, mIBO{ 0 }
+    {
+    }
 
     /*virtual void create_buffers(const std::vector<nelems::VertexHolder>& vertices, const std::vector<unsigned int>& indices) = 0;*/
     virtual void create_buffers() = 0;
@@ -28,14 +29,15 @@ namespace nrender
     virtual void set_pointSize(float value) = 0;
 
   protected:
-    GLuint mVBO;
-    GLuint mVCO;
+    GLuint mVBO_positions_parse_id = 1;
+    GLuint mVBO_attributes_parse_id = 2;
 
-    // GLuint mVBO_odd;
-    // GLuint mVCO_odd;
+    GLuint mVBO_positions_render_id = 0;
+    GLuint mVBO_attributes_render_id = 0;
 
-    GLuint mVAO;
-    GLuint mIBO;
+    GLuint mVAO_parsing_id;
+    GLuint mVAO_rendering_id = 1;
+    //GLuint mIBO;
     float pointSize = 1.0f;
   };
 

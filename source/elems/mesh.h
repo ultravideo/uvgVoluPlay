@@ -54,8 +54,6 @@ namespace nelems
 
     void unbind();
 
-    void set_data(std::shared_ptr<nelems::GLPointCloud> &pointCloud);
-
     void set_pointSize(float pointSize);
 
   private:  

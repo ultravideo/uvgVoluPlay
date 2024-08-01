@@ -110,16 +110,12 @@ namespace nelems
 
     void Mesh::render()
     { 
-        if (currnet_points == 0)
+        if (currnet_points == 0) {
             return;
+        }
         bind();
         mRenderBufferMgr->draw(currnet_points);
         unbind();
-    }
-
-    void Mesh::set_data(std::shared_ptr<nelems::GLPointCloud> &pointCloud)
-    {
-        mRenderBufferMgr->parse_buffers(pointCloud);
     }
 
     void Mesh::set_pointSize(float pointSize)
