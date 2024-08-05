@@ -60,6 +60,8 @@ namespace nelems
     // Buffers manager
     std::unique_ptr<nrender::VertexIndexBuffer> mRenderBufferMgr;
     int currnet_points = 0;
+
+    std::shared_ptr<nelems::GLPointCloud> pcl = nullptr;
   };
 }
 

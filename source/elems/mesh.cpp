@@ -66,26 +66,20 @@ namespace nelems
         // {
         //     geoVec.resize(vertexCount);
         //     attVec.resize(vertexCount);
-            
+        
         //     reader.extract_properties(indicesPos.data(), 3, miniply::PLYPropertyType::Float, geoVec.data());
         //     reader.extract_properties(indicesCol.data(), 3, miniply::PLYPropertyType::UChar, attVec.data());
 
-        //     //mVertexIndices.clear();
-        //     mVertices.clear();
+        //     pcl = std::make_shared<nelems::GLPointCloud>();
 
         //     for (size_t i = 0; i < vertexCount; ++i)
         //     {
-               
-        //         VertexHolder vh;
-   
-        //         vh.mPos = { geoVec[i][0], geoVec[i][1] , geoVec[i][2] };
-
-        //         vh.mColor = { (attVec[i][0])/255.0f, (attVec[i][1]) / 255.0f , (attVec[i][2]) / 255.0f };
+        //         pcl->addPoint(geoVec[i][0], geoVec[i][1], geoVec[i][2], attVec[i][0], attVec[i][1], attVec[i][2]);
         //     }
 
-        //     // Push the vertices into the pcl_queue
-        //     pcl_queue.push(std::make_shared<std::vector<nelems::VertexHolder>>(mVertices));
-        // }
+        //     pcl->Finallized();
+        // }    
+        // std::cout << "Loaded " << vertexCount << " vertices from " << filepath << std::endl;
     }
 
     void Mesh::create_buffers()
@@ -113,6 +107,12 @@ namespace nelems
         if (currnet_points == 0) {
             return;
         }
+
+        // if (pcl->max_size() == 0) {
+        //     return;
+        // }
+        // mRenderBufferMgr->parse_buffers(pcl);
+        
         bind();
         mRenderBufferMgr->draw(currnet_points);
         unbind();

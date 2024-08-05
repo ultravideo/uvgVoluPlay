@@ -13,11 +13,6 @@ namespace nui
         mFrameBuffer->create_buffers((int32_t)mSize.x, (int32_t) mSize.y);
     }
 
-    void SceneView::set_input(int mode)
-    {
-        InputMode = mode;
-    }
-
     void SceneView::on_mouse_move(double x, double y, nelems::EInputButton button)
     {
         mCamera->on_mouse_move(x, y, button);
@@ -66,7 +61,50 @@ namespace nui
 
         mFrameBuffer->unbind();
 
-        ImGui::Begin("Scene");
+        ImGui::Begin(scene_name.c_str());
+
+        ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+        mSize = { viewportPanelSize.x, viewportPanelSize.y };
+
+        mCamera->set_aspect(mSize.x / mSize.y);
+        mCamera->update(mShader.get());
+
+        // add rendered texture to ImGUI scene window
+        uint64_t textureID = mFrameBuffer->get_texture();
+        ImGui::Image(reinterpret_cast<void*>(textureID), ImVec2{ mSize.x, mSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+
+        ImGui::End();
+    }
+
+    void SceneView::render_sequence()
+    {
+        mShader->use();
+
+        //mLight->update(mShader.get());
+
+        mFrameBuffer->bind();
+
+        if (mMesh)
+        {
+            if (*sequence_loaded && parse_new_pcl)
+            {                
+                mMesh->parse_data(pcl_vector->at(frame_sequence_idx));
+                parse_new_pcl = false;
+            }
+            mMesh->render();
+        }
+
+        // // Make sure that we always have 1 pcl left to visualize, otherwise pcl will be deleted 
+        // // due to differnet in speed of rendering and receiving
+        if (*sequence_loaded && frame_sequence_idx < (pcl_vector->size() - 1))
+        {
+            frame_sequence_idx++;
+            parse_new_pcl = true;
+        }
+
+        mFrameBuffer->unbind();
+
+        ImGui::Begin(scene_name.c_str());
 
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
         mSize = { viewportPanelSize.x, viewportPanelSize.y };
@@ -86,14 +124,74 @@ namespace nui
         mpointSize = pointSize;
     }
 
-
     void SceneView::receivePointCloud()
     {
-        mPortal->zmq_run();
+        switch (mRenderMode)
+        {
+        case RENDER_ZMQ:
+            mPortal->zmq_run();
+            break;
+        case RENDER_SEQUENCE:
+            mPortal->sequence_run();
+            if (!pcl_vector->empty() && *sequence_loaded && frame_sequence_idx != 0) 
+            {
+                frame_sequence_idx = 0;
+                sequence_loaded = std::make_shared<bool>(true);
+            }
+            break;
+        default:
+            break;
+        }
     }
 
     void SceneView::stop()
     {
         mPortal->stop_signal();
     }
+
+    void SceneView::set_scene_name(std::string name)
+    {
+        scene_name = name;
+    }
+
+    void SceneView::set_sequence_path(std::string path)
+    {
+        mPortal->set_sequence_path(path);
+    }
+
+    void SceneView::render()
+    {
+        if (render_mode_ptr)
+            render_mode_ptr->operator()();
+    }
+
+    void SceneView::set_render_mode(int mode)
+    {
+        switch (mode)
+        {
+        case RENDER_ZMQ:
+            this->mRenderMode = RENDER_ZMQ;
+            render_mode_ptr.reset(new std::function<void()>(std::bind(&SceneView::render_zmq, this)));
+            mPortal->set_data_stream(pcl_queue, mMesh, Communication::SourceMode::SOURCE_ZMQ);
+            break;
+        case RENDER_SEQUENCE:
+            this->mRenderMode = RENDER_SEQUENCE;
+            // render_mode_ptr.reset(new std::function<void()>(std::bind(&SceneView::render_sequence, this)));
+            render_mode_ptr.reset(new std::function<void()>(std::bind(&SceneView::render_sequence, this)));
+            if (pcl_vector->empty())
+            {
+                mPortal->set_data_stream(pcl_vector, mMesh, Communication::SourceMode::SOURCE_SEQUENCE);
+                frame_sequence_idx = 0;
+                mPortal->set_load_sequence(sequence_loaded);
+            }
+            // mPortal->set_sequence_path("C:/Users/Guillaume/workspace/Sequence/Louis_sequence/");	
+            break;
+        default:
+            break;
+        }
+
+        utilities::Logger::log(utilities::LogLevel::INFO, "SceneView", "Render mode set to: " + std::to_string(mode) + "\n");
+    }
+
+
 }

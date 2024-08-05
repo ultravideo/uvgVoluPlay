@@ -21,6 +21,7 @@ namespace nwindow
     mSceneView = std::make_unique<SceneView>();
 
     mPCLPropertyPanel = std::make_unique<PCL_Property_Panel>();
+    // mPCLPropertyPanel->set_scene_view_container(mSceneView_Container);
 
     //mPCLPropertyPanel->set_mesh_load_callback(
     //  [this](std::string filepath) { mSceneView->load_mesh(filepath); });
@@ -48,12 +49,23 @@ namespace nwindow
     Height = height;
 
     mSceneView->resize(Width, Height);
+
+    // for (auto& scene_view : *mSceneView_Container)
+    // {
+    //   scene_view->resize(Width, Height);
+    // }
+
     render();
   }
 
   void GLWindow::on_scroll(double delta)
   {
     mSceneView->on_mouse_wheel(delta);
+
+    // for (auto& scene_view : *mSceneView_Container)
+    // {
+    //   scene_view->on_mouse_wheel(delta);
+    // }
   }
 
   void GLWindow::on_key(int key, int scancode, int action, int mods)
@@ -77,9 +89,7 @@ namespace nwindow
     mUICtx->pre_render();
 
     // render scene to framebuffer and add it to scene view
-    mSceneView->render_zmq();
-
-    //mPropertyPanel->render(mSceneView.get());
+    mSceneView->render();
 
     mPCLPropertyPanel->render(mSceneView.get());
 

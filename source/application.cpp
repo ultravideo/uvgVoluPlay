@@ -17,3 +17,5 @@ void Application::loop()
     mWindow->render();
   }
 }
+
+// control_panel
