@@ -14,7 +14,7 @@ namespace nrender
     glGenBuffers(1, &mVBO_positions_parse_id);
     glGenBuffers(1, &mVBO_attributes_parse_id);
 
-    glBindVertexArray(mVAO_parsing_id);
+    // glBindVertexArray(mVAO_parsing_id);
     
     std::cout << "Created Array: " << mVAO_parsing_id << " - ";
     std::cout << "Created: " <<  mVBO_positions_parse_id << " " << mVBO_attributes_parse_id << std::endl;
@@ -28,14 +28,15 @@ namespace nrender
       return;
     }
 
-    // create_buffers();
-
     //start timer
     // auto start = std::chrono::high_resolution_clock::now();
 
     // Calculate the total size needed for both position and attribute data
     size_t positionSize = (pointCloud->getPositionsVec().size()) * sizeof(glm::vec3);
     size_t attributeSize = (pointCloud->getAttributesVec().size()) * sizeof(glm::vec3);
+
+    // Bind the VAO
+    glBindVertexArray(mVAO_parsing_id);
 
     // Bind the VBO
     glBindBuffer(GL_ARRAY_BUFFER, mVBO_positions_parse_id);
@@ -45,7 +46,7 @@ namespace nrender
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
     // Unbind the VBO
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    // glBindBuffer(GL_ARRAY_BUFFER, 0); // Error here
 
    // Bind the VBO
     glBindBuffer(GL_ARRAY_BUFFER, mVBO_attributes_parse_id);
@@ -55,7 +56,9 @@ namespace nrender
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)(0));
     // Unbind the VCO
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    // glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glBindVertexArray(0);
 
     // auto end = std::chrono::high_resolution_clock::now();
     // std::chrono::duration<double> elapsed = end - start;
@@ -93,16 +96,16 @@ namespace nrender
   void OpenGL_VertexIndexBuffer::bind()
   {
     glBindVertexArray(mVAO_parsing_id);
-    glEnableClientState(GL_VERTEX_ARRAY);
+    // glEnableClientState(GL_VERTEX_ARRAY);
 
-    // std::cout << "Binding Array: " << mVAO << " - ";
+    // std::cout << "Binding Array: " << mVAO_parsing_id << "\n";
     // std::cout << "Rendering: " << mVBO_positions_render_id << " " << mVBO_attributes_render_id << std::endl;
 
   }
 
   void OpenGL_VertexIndexBuffer::unbind()
   {
-     glDisableClientState(GL_VERTEX_ARRAY);
+    //  glDisableClientState(GL_VERTEX_ARRAY);
      glBindVertexArray(0);
   }
 
@@ -149,6 +152,9 @@ namespace nrender
     glDrawBuffers(mTexId, buffers);
 
     unbind();
+
+    std::cout << "Created FrameBuffer: " << mFBO << " - ";
+    std::cout << "Created Textures: " << mTexId << " " << mDepthId << std::endl;
   }
 
   void OpenGL_FrameBuffer::delete_buffers()
@@ -168,6 +174,9 @@ namespace nrender
   {
     glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
     glViewport(0, 0, mWidth, mHeight);
+    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glClearColor(0.155f, 0.2f, 0.156f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }
 

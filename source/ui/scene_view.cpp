@@ -115,13 +115,12 @@ namespace nui
         // add rendered texture to ImGUI scene window
         uint64_t textureID = mFrameBuffer->get_texture();
         ImGui::Image(reinterpret_cast<void*>(textureID), ImVec2{ mSize.x, mSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-
         ImGui::End();
     }
 
     void SceneView::set_pointSize(float pointSize)
     {
-        mpointSize = pointSize;
+        mMesh->set_pointSize(pointSize);
     }
 
     void SceneView::receivePointCloud()
@@ -146,7 +145,19 @@ namespace nui
 
     void SceneView::stop()
     {
-        mPortal->stop_signal();
+        switch (this->mRenderMode)
+        {
+        case RENDER_ZMQ:
+            mPortal->stop_signal();
+            break;
+        case RENDER_SEQUENCE:
+            pcl_vector->clear();
+            sequence_loaded = std::make_shared<bool>(false);
+            frame_sequence_idx = 0;
+            break;
+        default:
+            break;
+        }
     }
 
     void SceneView::set_scene_name(std::string name)

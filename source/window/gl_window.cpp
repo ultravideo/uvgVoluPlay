@@ -18,20 +18,15 @@ namespace nwindow
 
     mUICtx->init(this);
 
-    mSceneView = std::make_unique<SceneView>();
+    std::shared_ptr<SceneView> mSceneView = std::make_shared<SceneView>();
+    mSceneView_Container->push_back(mSceneView);
 
     mPCLPropertyPanel = std::make_unique<PCL_Property_Panel>();
-    // mPCLPropertyPanel->set_scene_view_container(mSceneView_Container);
-
-    //mPCLPropertyPanel->set_mesh_load_callback(
-    //  [this](std::string filepath) { mSceneView->load_mesh(filepath); });
+    mPCLPropertyPanel->set_scene_view_container(mSceneView_Container);
 
     // mStatPanel = std::make_unique<Stat_Panel>();
 
     //mPropertyPanel = std::make_unique<Property_Panel>();
-
-    //mPropertyPanel->set_mesh_load_callback(
-    //  [this](std::string filepath) { mSceneView->load_mesh(filepath); });
 
     return mIsRunning;
   }
@@ -48,24 +43,24 @@ namespace nwindow
     Width = width;
     Height = height;
 
-    mSceneView->resize(Width, Height);
+    // mSceneView->resize(Width, Height);
 
-    // for (auto& scene_view : *mSceneView_Container)
-    // {
-    //   scene_view->resize(Width, Height);
-    // }
+    for (auto& scene_view : *mSceneView_Container)
+    {
+      scene_view->resize(Width, Height);
+    }
 
     render();
   }
 
   void GLWindow::on_scroll(double delta)
   {
-    mSceneView->on_mouse_wheel(delta);
+    // mSceneView->on_mouse_wheel(delta);
 
-    // for (auto& scene_view : *mSceneView_Container)
-    // {
-    //   scene_view->on_mouse_wheel(delta);
-    // }
+    for (auto& scene_view : *mSceneView_Container)
+    {
+      scene_view->on_mouse_wheel(delta);
+    }
   }
 
   void GLWindow::on_key(int key, int scancode, int action, int mods)
@@ -88,13 +83,16 @@ namespace nwindow
     // Initialize UI components
     mUICtx->pre_render();
 
-    // render scene to framebuffer and add it to scene view
-    mSceneView->render();
 
-    mPCLPropertyPanel->render(mSceneView.get());
+    mPCLPropertyPanel->render(mSceneView_Container->at(0).get());
 
     // mStatPanel->render();
 
+    for (auto& scene_view : *mSceneView_Container)
+    {
+      scene_view->render();
+    }
+    
     // Render the UI 
     mUICtx->post_render();
 
@@ -110,22 +108,38 @@ namespace nwindow
 
     if (glfwGetKey(mWindow, GLFW_KEY_W) == GLFW_PRESS)
     {
-      mSceneView->on_mouse_wheel(-0.4f);
+      // mSceneView->on_mouse_wheel(-0.4f);
+      for (auto& scene_view : *mSceneView_Container)
+      {
+        scene_view->on_mouse_wheel(-0.4f);
+      }
     }
 
     if (glfwGetKey(mWindow, GLFW_KEY_S) == GLFW_PRESS)
     {
-      mSceneView->on_mouse_wheel(0.4f);
+      // mSceneView->on_mouse_wheel(0.4f);
+      for (auto& scene_view : *mSceneView_Container)
+      {
+        scene_view->on_mouse_wheel(0.4f);
+      }
     }
 
     if (glfwGetKey(mWindow, GLFW_KEY_F) == GLFW_PRESS)
     {
-      mSceneView->reset_view();
+      // mSceneView->reset_view();
+      for (auto& scene_view : *mSceneView_Container)
+      {
+        scene_view->reset_view();
+      }
     }
 
     double x, y;
     glfwGetCursorPos(mWindow, &x, &y);
 
-    mSceneView->on_mouse_move(x, y, Input::GetPressedButton(mWindow));
+    // mSceneView->on_mouse_move(x, y, Input::GetPressedButton(mWindow));
+    for (auto& scene_view : *mSceneView_Container)
+    {
+      scene_view->on_mouse_move(x, y, Input::GetPressedButton(mWindow));
+    }
   }
 }

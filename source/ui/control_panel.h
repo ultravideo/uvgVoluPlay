@@ -13,7 +13,6 @@ namespace nui
     class PCL_Property_Panel
     {
     public:
-
         PCL_Property_Panel()
         {
             mCurrentPLYFile = "< ... >";
@@ -39,6 +38,12 @@ namespace nui
         void post_handle(nui::SceneView* scene_view);
         // void handleMessage(nui::SceneView* scene_view, zmq::message_t message );
         void scene_view_start(nui::SceneView* scene_view);
+
+        struct UI_config {
+            //Same line
+            float spacing_x = 5.0f;
+            float offset_from_start_x = 0.0f;
+        } UI_configation;
 
     private:
         std::function<void(const std::string&)> mPLYLoadCallback;

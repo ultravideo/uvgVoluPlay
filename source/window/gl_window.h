@@ -76,7 +76,7 @@ namespace nwindow
 
     std::unique_ptr<PCL_Property_Panel> mPCLPropertyPanel;
 
-    std::unique_ptr<SceneView> mSceneView;
+    std::unique_ptr<SceneView> mSceneView_2;
 
     bool mIsRunning;
 
