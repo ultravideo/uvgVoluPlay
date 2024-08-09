@@ -24,8 +24,6 @@ namespace nelems
 
     virtual ~Mesh();
 
-    void load(const std::string& filepath);
-
     void update(nshaders::Shader* shader) override
     {
       // pbr color

@@ -123,23 +123,24 @@ namespace nui
         mMesh->set_pointSize(pointSize);
     }
 
+    std::string SceneView::get_scene_name()
+    {
+        return scene_name;
+    }
+
     void SceneView::receivePointCloud()
     {
-        switch (mRenderMode)
-        {
-        case RENDER_ZMQ:
+        if (mRenderMode == RENDER_ZMQ) {
             mPortal->zmq_run();
-            break;
-        case RENDER_SEQUENCE:
+        } 
+        else if (mRenderMode == RENDER_SEQUENCE)
+        {
             mPortal->sequence_run();
             if (!pcl_vector->empty() && *sequence_loaded && frame_sequence_idx != 0) 
             {
                 frame_sequence_idx = 0;
                 sequence_loaded = std::make_shared<bool>(true);
             }
-            break;
-        default:
-            break;
         }
     }
 
@@ -182,26 +183,36 @@ namespace nui
         {
         case RENDER_ZMQ:
             this->mRenderMode = RENDER_ZMQ;
-            render_mode_ptr.reset(new std::function<void()>(std::bind(&SceneView::render_zmq, this)));
             mPortal->set_data_stream(pcl_queue, mMesh, Communication::SourceMode::SOURCE_ZMQ);
             break;
         case RENDER_SEQUENCE:
             this->mRenderMode = RENDER_SEQUENCE;
-            // render_mode_ptr.reset(new std::function<void()>(std::bind(&SceneView::render_sequence, this)));
-            render_mode_ptr.reset(new std::function<void()>(std::bind(&SceneView::render_sequence, this)));
             if (pcl_vector->empty())
             {
                 mPortal->set_data_stream(pcl_vector, mMesh, Communication::SourceMode::SOURCE_SEQUENCE);
                 frame_sequence_idx = 0;
                 mPortal->set_load_sequence(sequence_loaded);
             }
-            // mPortal->set_sequence_path("C:/Users/Guillaume/workspace/Sequence/Louis_sequence/");	
             break;
         default:
             break;
         }
 
         utilities::Logger::log(utilities::LogLevel::INFO, "SceneView", "Render mode set to: " + std::to_string(mode) + "\n");
+    }
+
+    void SceneView::run() {
+        switch (this->mRenderMode)
+        {
+        case RENDER_ZMQ:
+            render_mode_ptr.reset(new std::function<void()>(std::bind(&SceneView::render_zmq, this)));
+            break;
+        case RENDER_SEQUENCE:
+            render_mode_ptr.reset(new std::function<void()>(std::bind(&SceneView::render_sequence, this)));
+            break;
+        default:
+            break;
+        }
     }
 
 

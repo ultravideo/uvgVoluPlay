@@ -25,6 +25,15 @@ namespace nui
     RENDER_ZMQ = 1,
   };
 
+  // Playback Components
+    enum PlaybackMode
+    {
+        PLAYING,
+        PAUSED,
+        STOPPED,
+        LOOPING
+    };
+
   class SceneView
   {
   public:
@@ -76,6 +85,10 @@ namespace nui
 
     void set_render_mode(int mode);
 
+    std::string get_scene_name();
+
+    void run();
+
   private:
     void render_zmq();
 
@@ -97,7 +110,7 @@ namespace nui
     float mpointSize = 1.0f;
 
     bool parse_new_pcl = false;
-    std::string scene_name = "Scene";
+    std::string scene_name = "Scene 0";
     std::shared_ptr<std::function<void()>> render_mode_ptr = nullptr;
 
     RenderMode mRenderMode = RENDER_SEQUENCE;

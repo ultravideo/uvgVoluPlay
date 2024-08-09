@@ -43,8 +43,6 @@ namespace nwindow
     Width = width;
     Height = height;
 
-    // mSceneView->resize(Width, Height);
-
     for (auto& scene_view : *mSceneView_Container)
     {
       scene_view->resize(Width, Height);
@@ -84,9 +82,7 @@ namespace nwindow
     mUICtx->pre_render();
 
 
-    mPCLPropertyPanel->render(mSceneView_Container->at(0).get());
-
-    // mStatPanel->render();
+    mPCLPropertyPanel->render();
 
     for (auto& scene_view : *mSceneView_Container)
     {
@@ -117,7 +113,6 @@ namespace nwindow
 
     if (glfwGetKey(mWindow, GLFW_KEY_S) == GLFW_PRESS)
     {
-      // mSceneView->on_mouse_wheel(0.4f);
       for (auto& scene_view : *mSceneView_Container)
       {
         scene_view->on_mouse_wheel(0.4f);
@@ -126,7 +121,6 @@ namespace nwindow
 
     if (glfwGetKey(mWindow, GLFW_KEY_F) == GLFW_PRESS)
     {
-      // mSceneView->reset_view();
       for (auto& scene_view : *mSceneView_Container)
       {
         scene_view->reset_view();

@@ -220,7 +220,8 @@ namespace Communication {
     }
 
     void Portal::sequence_run() {
-        if (!sequence_handler->pcl_vector->empty()) {
+
+            if (!sequence_handler->pcl_vector->empty()) {
             utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Restart to run the sequence at path: " + sequence_handler->sequence_path + "\n");
             return;
         }
@@ -241,8 +242,6 @@ namespace Communication {
         *sequence_handler->sequence_loaded = true;
 
         utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Loaded " + std::to_string(files.size()) + " files\n");
-    
-    
     }
 
 }; // namespace Communication

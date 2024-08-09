@@ -23,65 +23,6 @@ namespace nelems
         delete_buffers();
     }
 
-    void Mesh::load(const std::string& filepath)
-    {
-        // miniply::PLYReader reader(filepath.c_str());
-
-        // if (!reader.valid()) {
-        //     throw std::runtime_error("miniply : Failed to open " + filepath);
-        // }
-
-        // bool vertexElementFound = false;
-        // while (reader.has_element()) {
-        //     if (reader.element_is(miniply::kPLYVertexElement)) {
-        //         vertexElementFound = true;
-        //         break;  // Ensure that the current element is the vertex element for what follow
-        //     }
-        //     reader.next_element();
-        // }
-
-        // if (!vertexElementFound) {
-        //     throw std::runtime_error("miniply : No vertex element (miniply::kPLYVertexElement) was found in this file : " + filepath);
-        // }
-
-        // if (!reader.load_element()) {
-        //     throw std::runtime_error("miniply : Vertex element did not load correctly (file: " + filepath + ")");
-        // }
-        // std::array<uint32_t, 3> indicesPos{};  // Indices of position properties in the vertex line
-        // if (!reader.find_pos(indicesPos.data())) {
-        //     throw std::runtime_error(
-        //         "miniply : Position properties (x,y,z) were not located in the vertex element (file: " + filepath + ")");
-        // }
-        // std::array<uint32_t, 3> indicesCol{};  // Indices of color properties in the vertex line
-        // if (!reader.find_color(indicesCol.data())) {
-        //     throw std::runtime_error("miniply : Color properties (r,g,b or red,green,blue) were not located in the vertex element (file: " +
-        //         filepath + ")");
-        // }
-
-        // std::vector<std::array<float, 3>> geoVec;
-        // std::vector<std::array<uint8_t, 3>> attVec;
-
-        // const uint32_t vertexCount = reader.element()->count;
-        // if (vertexCount > 0)
-        // {
-        //     geoVec.resize(vertexCount);
-        //     attVec.resize(vertexCount);
-        
-        //     reader.extract_properties(indicesPos.data(), 3, miniply::PLYPropertyType::Float, geoVec.data());
-        //     reader.extract_properties(indicesCol.data(), 3, miniply::PLYPropertyType::UChar, attVec.data());
-
-        //     pcl = std::make_shared<nelems::GLPointCloud>();
-
-        //     for (size_t i = 0; i < vertexCount; ++i)
-        //     {
-        //         pcl->addPoint(geoVec[i][0], geoVec[i][1], geoVec[i][2], attVec[i][0], attVec[i][1], attVec[i][2]);
-        //     }
-
-        //     pcl->Finallized();
-        // }    
-        // std::cout << "Loaded " << vertexCount << " vertices from " << filepath << std::endl;
-    }
-
     void Mesh::create_buffers()
     {
          mRenderBufferMgr->create_buffers();
@@ -107,11 +48,6 @@ namespace nelems
         if (currnet_points == 0) {
             return;
         }
-
-        // if (pcl->max_size() == 0) {
-        //     return;
-        // }
-        // mRenderBufferMgr->parse_buffers(pcl);
         
         bind();
         mRenderBufferMgr->draw(currnet_points);

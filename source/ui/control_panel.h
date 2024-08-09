@@ -13,30 +13,15 @@ namespace nui
     class PCL_Property_Panel
     {
     public:
-        PCL_Property_Panel()
-        {
-            mCurrentPLYFile = "< ... >";
+        PCL_Property_Panel();
+        ~PCL_Property_Panel();
 
-            mPLYFileDialog.SetTitle("Open PLY file");
-            mPLYFileDialog.SetFileFilters({ ".ply" });
-        }
-
-        void render(nui::SceneView* mScene);
-
-        void set_mesh_load_callback(const std::function<void(const std::string&)>& callback)
-        {
-            mPLYLoadCallback = callback;
-        }
-
-        void set_scene_view_container(std::shared_ptr<std::vector<std::shared_ptr<nui::SceneView>>> &scene_view_container)
-        {
-            mSceneView_Container = scene_view_container;
-        }
+        void render();
+        void set_scene_view_container(std::shared_ptr<std::vector<std::shared_ptr<nui::SceneView>>> &scene_view_container);
 
     private:
         std::string get_serialNumber(int index);
-        void post_handle(nui::SceneView* scene_view);
-        // void handleMessage(nui::SceneView* scene_view, zmq::message_t message );
+        void post_handle();
         void scene_view_start(nui::SceneView* scene_view);
 
         struct UI_config {
@@ -46,14 +31,13 @@ namespace nui
         } UI_configation;
 
     private:
-        std::function<void(const std::string&)> mPLYLoadCallback;
         std::shared_ptr<std::thread> LoadPclThreadPtr;
         bool startLoadPclThread = true;
 
         //Drop down setup
         bool showDropdown = false;
-        int selectedItem = 0; // Index of the selected item
-        const char* items[2] = { "Folder Sequence", "Kinect(s)" }; // Example items
+        int selected_render_mode = 0; // Index of the selected item
+        const char* render_mode_items[2] = { "Folder Sequence", "Kinect(s)" }; // Example items
 
         // create a file browser instance
         ImGui::FileBrowser mPLYFileDialog;
@@ -66,10 +50,14 @@ namespace nui
 
         //Kinect devices
         std::thread captureThread;
-        char serveraddrBuffer[256] = "tcp://*:5555"; // Buffer to hold the text
         bool stopServer = false;
 
-        //Testing
+        //SceneView container
+        size_t selected_scene_index = 0;
         std::shared_ptr<std::vector<std::shared_ptr<nui::SceneView>>> mSceneView_Container = nullptr;
+        std::vector<std::string> mSceneView_Names;
+        
+        int current_frame = 0;
+        int total_frames = 0;
     };
 }
