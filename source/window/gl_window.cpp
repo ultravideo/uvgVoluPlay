@@ -81,6 +81,8 @@ namespace nwindow
     // Initialize UI components
     mUICtx->pre_render();
 
+    bool show_demo_window = true;
+    ImGui::ShowDemoWindow(&show_demo_window);
 
     mPCLPropertyPanel->render();
 

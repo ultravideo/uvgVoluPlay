@@ -221,7 +221,7 @@ namespace Communication {
 
     void Portal::sequence_run() {
 
-            if (!sequence_handler->pcl_vector->empty()) {
+        if (!sequence_handler->pcl_vector->empty()) {
             utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Restart to run the sequence at path: " + sequence_handler->sequence_path + "\n");
             return;
         }

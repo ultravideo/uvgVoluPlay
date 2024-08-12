@@ -21,36 +21,19 @@ namespace nui
     {
         ImGui::Begin("Controller");
         
-        if (ImGui::BeginCombo("##inputlist_rendermode", render_mode_items[selected_render_mode])) // The ##combo is a unique identifier
+        if (ImGui::CollapsingHeader("Main Control", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            for (int i = 0; i < IM_ARRAYSIZE(render_mode_items); i++)
+            ImGui::AlignTextToFramePadding();
+            ImGui::BulletText("Render Mode ");
+            ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
+            if (ImGui::BeginCombo("##inputlist_rendermode", render_mode_items[selected_render_mode])) // The ##combo is a unique identifier
             {
-                bool isSelected = (selected_render_mode == i);
-                if (ImGui::Selectable(render_mode_items[i], isSelected))
+                for (int i = 0; i < IM_ARRAYSIZE(render_mode_items); i++)
                 {
-                    selected_render_mode = i;
-                }
-                if (isSelected)
-                {
-                    ImGui::SetItemDefaultFocus();
-                }
-            }
-            ImGui::EndCombo();
-        }
-        ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
-        ImGui::Text(" Render Mode");
-
-        switch (selected_render_mode)
-        {
-        case 0:
-            if (ImGui::BeginCombo("##inputlist_scenelist", mSceneView_Names.at(selected_scene_index).c_str())) // The ##combo is a unique identifier
-            {
-                for (size_t i = 0; i < mSceneView_Container->size(); i++)
-                {
-                    bool isSelected = (selected_scene_index == i);
-                    if (ImGui::Selectable(mSceneView_Names.at(i).c_str(), isSelected))
+                    bool isSelected = (selected_render_mode == i);
+                    if (ImGui::Selectable(render_mode_items[i], isSelected))
                     {
-                        selected_scene_index = i;
+                        selected_render_mode = i;
                     }
                     if (isSelected)
                     {
@@ -59,105 +42,240 @@ namespace nui
                 }
                 ImGui::EndCombo();
             }
-            ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
-            ImGui::Text(" Select Scene");
-        
-            if (ImGui::Button("Open..."))
+
+            switch (selected_render_mode)
             {
-                mPLYFileDialog.Open();
+            case 0:
+                ImGui::AlignTextToFramePadding();
+                ImGui::BulletText("Select Scene");
+                ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
+                if (ImGui::BeginCombo("##inputlist_scenelist", mSceneView_Names.at(selected_scene_index).first.c_str())) // The ##combo is a unique identifier
+                {
+                    for (size_t i = 0; i < mSceneView_Container->size(); i++)
+                    {
+                        bool isSelected = (selected_scene_index == i);
+                        if (ImGui::Selectable(mSceneView_Names.at(i).first.c_str(), isSelected))
+                        {
+                            selected_scene_index = i;
+                        }
+                        if (isSelected)
+                        {
+                            ImGui::SetItemDefaultFocus();
+                        }
+                    }
+                    ImGui::EndCombo();
+                }
+
+                ImGui::AlignTextToFramePadding();
+                ImGui::BulletText("Select sequence Folder: ");
+                ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
+                if (ImGui::Button("Open..."))
+                {
+                    mPLYFileDialog.Open();
+                }
+
+                ImGui::Separator();
+                ImGui::BulletText("Scenes Information:");
+                ImGui::BeginTable("##scene_table", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
+                ImGui::TableSetupColumn("Scene Name", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+                ImGui::TableSetupColumn("Sequence Name", ImGuiTableColumnFlags_WidthStretch, 100.0f);
+                ImGui::TableSetupColumn("Total Frames", ImGuiTableColumnFlags_WidthStretch, 100.0f);
+                ImGui::TableHeadersRow();
+                ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, IM_COL32(60, 136, 158, 255));
+
+                for (size_t i = 0; i < mSceneView_Container->size(); i++)
+                {
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text(mSceneView_Names.at(i).first.c_str());
+                    ImGui::TableNextColumn();
+                    ImGui::Text(mSceneView_Names.at(i).second.c_str());
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%d", mSceneView_Container->at(i)->get_total_frames());
+                }
+
+                ImGui::EndTable();
+                ImGui::Separator();
+                
+                break;
+            case 1:
+                ImGui::Text("Receive from Kinect(s)");
+                break;
+            default:
+                break;
             }
+
+            ImGui::AlignTextToFramePadding();
+            ImGui::BulletText("Mode Control: ");
             ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
-            ImGui::Text("Sequence Folder: %s", mCurrentPLYFolder.c_str());
-            
-            break;
-        case 1:
-            ImGui::Text("Receive from Kinect(s)");
-            break;
-        default:
-            break;
-        }
 
-        if (ImGui::Button("Start", ImVec2(100, 20)) && !StartButton_disable)
-        {
-            if ((mCurrentPLYFolder == "") && selected_render_mode == 0) {
-                utilities::Logger::log(utilities::LogLevel::ERROR, "Viewport Controller", "Please select folder of the sequence\n");
+            if (ImGui::Button("Start", ImVec2(100, 20)) && !StartButton_disable)
+            {
+                if ((mCurrentPLYFolder == "") && selected_render_mode == 0) {
+                    utilities::Logger::log(utilities::LogLevel::ERROR, "Viewport Controller", "Please select folder of the sequence\n");
+                }
+                else {
+                    startLoadPclThread = false;
+                    StartButton_disable = true;
+
+                    for (auto& scene_view : *mSceneView_Container)
+                    {
+                        scene_view->run();
+                    }
+
+                    utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Signal to start Portal\n");
+                }
             }
-            else {
-                startLoadPclThread = false;
-                StartButton_disable = true;
 
+            ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
+
+            if (ImGui::Button("Stop", ImVec2(100, 20)) && StartButton_disable)
+            {
                 for (auto& scene_view : *mSceneView_Container)
                 {
-                    scene_view->run();
+                    scene_view->stop();
                 }
 
-                utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Signal to start Portal\n");
-            }
-        }
-
-        ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
-
-        if (ImGui::Button("Stop", ImVec2(100, 20)) && StartButton_disable)
-        {
-            for (auto& scene_view : *mSceneView_Container)
-            {
-                scene_view->stop();
+                StartButton_disable = false;
+                utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Signal to stop Portal\n");
             }
 
-            StartButton_disable = false;
-            utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Signal to stop Portal\n");
-        }
-
-        if (selected_render_mode == 0)
-        {   
-            if (selected_render_mode == 0 && StartButton_disable) {
-
-                if (ImGui::Button("Restart", ImVec2(100, 20)))
+            ImGui::Separator();
+            if (ImGui::CollapsingHeader("View Control", ImGuiTreeNodeFlags_DefaultOpen))
+            {   
+                ImGui::AlignTextToFramePadding();
+                ImGui::BulletText("Number of Views: %d --- ", mSceneView_Container->size());
+                ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
+                if (ImGui::Button("Add Views", ImVec2(100, 20)))
                 {
-                    startLoadPclThread = false;
+                    std::shared_ptr<nui::SceneView> new_scene_view = std::make_shared<nui::SceneView>();
+                    new_scene_view->set_scene_name("Scene " + std::to_string(mSceneView_Container->size()));
+                    mSceneView_Container->push_back(new_scene_view);
+                    mSceneView_Names.push_back(std::make_pair(new_scene_view->get_scene_name(), ""));
                 }
+
+                ImGui::Text(" ");
+                ImGui::BulletText("Background Color:");
+
+                ImGui::ColorPicker3("Background Color", bg_color, ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_DisplayRGB);
+                for (auto& scene_view : *mSceneView_Container)
+                {
+                    scene_view->set_background_color(bg_color[0], bg_color[1], bg_color[2]);
+                }
+
+                ImGui::Text(" ");
             }
         }
 
         ImGui::Separator();
-        if (ImGui::CollapsingHeader("View Control", ImGuiTreeNodeFlags_DefaultOpen))
-        {   
+
+        if (ImGui::CollapsingHeader("Scene Control", ImGuiTreeNodeFlags_DefaultOpen))
+        {
             if (ImGui::SliderFloat("Point Size", &point_size, 1.0f, 5.0f)) {
                 for (auto& scene_view : *mSceneView_Container)
                 {
                     scene_view->set_pointSize(point_size);
                 }
-            }    
+            }
 
-            if (ImGui::Button("Reset View", ImVec2(100, 20)))
+            ImGui::BulletText("Timestamp control:");
+            for (auto& scene_view : *mSceneView_Container)
+            {
+                if (scene_view->get_scene_name() == mSceneView_Names.at(selected_scene_index).first && scene_view->get_total_frames() > 0) 
+                {
+                    total_frames = scene_view->get_total_frames() - 1;
+                    break;
+                }
+            }
+            
+            if (ImGui::SliderInt("Current Frame", &current_frame, 0, total_frames))
+            {
+                for (auto& scene_view : *mSceneView_Container)
+                {
+                    scene_view->set_frame_idx(current_frame);
+                    scene_view->set_pause(true);
+                }
+            }
+
+            for (auto& scene_view : *mSceneView_Container)
+            {
+                if (scene_view->get_scene_name() == mSceneView_Names.at(selected_scene_index).first)
+                {
+                    if (scene_view->get_current_frame() != current_frame)
+                    {
+                        current_frame = scene_view->get_current_frame();
+                    }
+                    break;
+                }
+            }
+
+            ImGui::BulletText("Playback control:");
+            // Backward and Forward buttons and play button
+            if (ImGui::Button("<<", ImVec2(50, 20)))
+            {
+                if (current_frame > 0)
+                {
+                    current_frame = current_frame - 1;
+                    for (auto& scene_view : *mSceneView_Container)
+                    {
+                        scene_view->set_frame_idx(current_frame);
+                        scene_view->set_pause(true);
+                    }
+                }
+            }
+            ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
+            if (ImGui::Button("|>", ImVec2(50, 20)))
+            {
+                for (auto& scene_view : *mSceneView_Container)
+                {
+                    scene_view->set_frame_idx(current_frame);
+                    scene_view->set_pause(false);
+                }
+            }
+            ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
+            if (ImGui::Button(">>", ImVec2(50, 20)))
+            {
+                if (current_frame < total_frames)
+                {
+                    current_frame = current_frame + 1;
+                    for (auto& scene_view : *mSceneView_Container)
+                    {
+                        scene_view->set_frame_idx(current_frame);
+                        scene_view->set_pause(true);
+                    }
+                }
+
+            }
+
+            ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
+            if (ImGui::Button("Pause", ImVec2(100, 20)))
+            {
+                for (auto& scene_view : *mSceneView_Container)
+                {
+                    scene_view->set_pause(true);
+                }
+            }
+
+            if (ImGui::Button("Reset Camera View", ImVec2(160, 20)))
             {
                 for (auto& scene_view : *mSceneView_Container)
                 {
                     scene_view->reset_view();
                 }
             }
-
             ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
-
-            if (ImGui::Button("Add Views", ImVec2(100, 20)))
+            if (ImGui::Button("Restart", ImVec2(100, 20)))
             {
-                std::shared_ptr<nui::SceneView> new_scene_view = std::make_shared<nui::SceneView>();
-                new_scene_view->set_scene_name("Scene " + std::to_string(mSceneView_Container->size()));
-                mSceneView_Container->push_back(new_scene_view);
-                mSceneView_Names.push_back(new_scene_view->get_scene_name());
-            }
-        }
-
-        ImGui::Separator();
-        if (ImGui::CollapsingHeader("Scene Control", ImGuiTreeNodeFlags_DefaultOpen))
-        {
-            if (total_frames != 0) { 
-                if (ImGui::SliderInt("Playback", &current_frame, 0, total_frames))
-                {
-
+                if (selected_render_mode == 0 && StartButton_disable) {
+                    startLoadPclThread = false;
+                    current_frame = 0;
+                    for (auto& scene_view : *mSceneView_Container)
+                    {
+                        scene_view->set_frame_idx(current_frame);
+                        scene_view->set_pause(false);
+                    }
                 }
             }
-
         }
     
         ImGui::End();
@@ -171,7 +289,7 @@ namespace nui
 
         for (auto& scene_view : *mSceneView_Container)
         {
-            mSceneView_Names.push_back(scene_view->get_scene_name());
+            mSceneView_Names.push_back(std::make_pair(scene_view->get_scene_name(), ""));
         }
     }
 
@@ -189,11 +307,14 @@ namespace nui
             mCurrentPLYFolder = directory_path.string();
             for (auto& scene_view : *mSceneView_Container)
             {
-                if (mSceneView_Names.at(selected_scene_index) == scene_view->get_scene_name())
+                if (mSceneView_Names.at(selected_scene_index).first == scene_view->get_scene_name())
                 {
                     scene_view->set_render_mode(selected_render_mode);
                     scene_view->set_sequence_path(mCurrentPLYFolder);
+                    std::string folder_name = mCurrentPLYFolder.substr(mCurrentPLYFolder.find_last_of("/\\") + 1);
+                    mSceneView_Names.at(selected_scene_index).second = folder_name;
                     utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Set sequence path to: " + mCurrentPLYFolder + " for " + scene_view->get_scene_name() + "\n");
+                    break;  
                 }
             }
 
@@ -210,7 +331,6 @@ namespace nui
             {
                 // scene_view_start(scene_view.get()); 
                 scene_view->receivePointCloud();
-                std::cout << "Start loading PCL thread for " << scene_view->get_scene_name() << std::endl;
             }
             startLoadPclThread = true;
         }

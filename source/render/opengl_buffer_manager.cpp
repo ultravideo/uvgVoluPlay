@@ -156,7 +156,7 @@ namespace nrender
     glViewport(0, 0, mWidth, mHeight);
     // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glClearColor(0.155f, 0.2f, 0.156f, 1.0f);
+    glClearColor(background_color[0], background_color[1], background_color[2], background_color[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }
 
@@ -170,5 +170,10 @@ namespace nrender
     return mTexId;
   }
 
-
+  void OpenGL_FrameBuffer::set_background_color(float r, float g, float b)
+  {
+    background_color[0] = r;
+    background_color[1] = g;
+    background_color[2] = b;
+  }
 }

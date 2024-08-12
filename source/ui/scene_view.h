@@ -89,6 +89,16 @@ namespace nui
 
     void run();
 
+    int get_total_frames();
+
+    int get_current_frame();
+
+    void set_frame_idx(size_t idx);
+
+    void set_pause(bool pause);
+
+    void set_background_color(float r, float g, float b);
+
   private:
     void render_zmq();
 
@@ -116,6 +126,8 @@ namespace nui
     RenderMode mRenderMode = RENDER_SEQUENCE;
     size_t frame_sequence_idx = 0;
     std::shared_ptr<bool> sequence_loaded = std::make_shared<bool>(false);
+    std::mutex frame_idx_mutex;
+    bool is_paused = false;
   };
 }
 

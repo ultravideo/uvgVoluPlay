@@ -86,20 +86,25 @@ namespace nui
 
         if (mMesh)
         {
-            if (*sequence_loaded && parse_new_pcl)
-            {                
+            if (*sequence_loaded && parse_new_pcl && (frame_sequence_idx < (pcl_vector->size())))
+            {        
+                // Use mutex to avoid race condition
+                std::lock_guard<std::mutex> lock(frame_idx_mutex);        
                 mMesh->parse_data(pcl_vector->at(frame_sequence_idx));
                 parse_new_pcl = false;
             }
-            mMesh->render();
-        }
 
-        // // Make sure that we always have 1 pcl left to visualize, otherwise pcl will be deleted 
-        // // due to differnet in speed of rendering and receiving
-        if (*sequence_loaded && frame_sequence_idx < (pcl_vector->size() - 1))
-        {
-            frame_sequence_idx++;
-            parse_new_pcl = true;
+            mMesh->render();
+
+            // // Make sure that we always have 1 pcl left to visualize, otherwise pcl will be deleted 
+            // // due to differnet in speed of rendering and receiving
+            if (*sequence_loaded && (frame_sequence_idx < (pcl_vector->size() - 1)) && !is_paused)
+            {
+                // Use mutex to avoid race condition
+                std::lock_guard<std::mutex> lock(frame_idx_mutex);
+                frame_sequence_idx++;
+                parse_new_pcl = true;
+            }
         }
 
         mFrameBuffer->unbind();
@@ -136,10 +141,10 @@ namespace nui
         else if (mRenderMode == RENDER_SEQUENCE)
         {
             mPortal->sequence_run();
-            if (!pcl_vector->empty() && *sequence_loaded && frame_sequence_idx != 0) 
+            if (!pcl_vector->empty() && *sequence_loaded && frame_sequence_idx == (pcl_vector->size() - 1))
             {
                 frame_sequence_idx = 0;
-                sequence_loaded = std::make_shared<bool>(true);
+                is_paused = true;
             }
         }
     }
@@ -215,5 +220,31 @@ namespace nui
         }
     }
 
+    int SceneView::get_total_frames()
+    {
+        return static_cast<int>(pcl_vector->size());
+    }
 
+    int SceneView::get_current_frame()
+    {
+        return frame_sequence_idx;
+    }
+
+    void SceneView::set_frame_idx(size_t idx)
+    {
+        // Use mutex to avoid race condition
+        std::lock_guard<std::mutex> lock(frame_idx_mutex);
+        frame_sequence_idx = idx;
+    }
+
+    void SceneView::set_pause(bool pause)
+    {
+        is_paused = pause;
+        parse_new_pcl = true;
+    }
+
+    void SceneView::set_background_color(float r, float g, float b)
+    {
+        mFrameBuffer->set_background_color(r, g, b);
+    }
 }

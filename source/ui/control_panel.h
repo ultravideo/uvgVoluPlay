@@ -55,9 +55,10 @@ namespace nui
         //SceneView container
         size_t selected_scene_index = 0;
         std::shared_ptr<std::vector<std::shared_ptr<nui::SceneView>>> mSceneView_Container = nullptr;
-        std::vector<std::string> mSceneView_Names;
+        std::vector<std::pair<std::string, std::string>> mSceneView_Names; // <SceneName, Sequence_Path>
         
         int current_frame = 0;
         int total_frames = 0;
+        float bg_color[3] = { 0.155f, 0.2f, 0.156f };
     };
 }
