@@ -32,7 +32,7 @@ namespace nui
 
     private:
         std::shared_ptr<std::thread> LoadPclThreadPtr;
-        bool startLoadPclThread = true;
+        bool start_portal_falg = true;
 
         //Drop down setup
         bool showDropdown = false;

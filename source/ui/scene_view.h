@@ -47,7 +47,7 @@ namespace nui
       mShader->load("shaders/vs.shader", "shaders/fr_nolight.shader");
       mLight = std::make_unique<nelems::Light>();
 
-      mCamera = std::make_unique<nelems::Camera>(glm::vec3(0, 10, 20), 45.0f, 1.3f, 0.1f, 2000.0f);
+      mCamera = std::make_unique<nelems::Camera>(glm::vec3(10, 100, 200), 45.0f, 1.3f, 0.1f, 2000.0f);
 
       if (!mMesh) {
           mMesh = std::make_shared<nelems::Mesh>();

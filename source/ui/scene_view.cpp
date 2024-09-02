@@ -33,6 +33,7 @@ namespace nui
 
         if (mMesh)
         {
+            std::cout << "Queue size: " << pcl_queue->size() << std::endl;
             if (!pcl_queue->empty() && parse_new_pcl)
             {                
                 mMesh->parse_data(pcl_queue->front());

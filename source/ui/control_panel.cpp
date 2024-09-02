@@ -111,15 +111,29 @@ namespace nui
 
             if (ImGui::Button("Start", ImVec2(100, 20)) && !StartButton_disable)
             {
-                if ((mCurrentPLYFolder == "") && selected_render_mode == 0) {
-                    utilities::Logger::log(utilities::LogLevel::ERROR, "Viewport Controller", "Please select folder of the sequence\n");
+                bool all_scene_view_has_sequence = true;
+                if (selected_render_mode == 0) {
+                    for (auto& scene_view : mSceneView_Names)
+                    {
+                        if (scene_view.second.empty())
+                        {
+                            all_scene_view_has_sequence = false;
+                            utilities::Logger::log(utilities::LogLevel::ERROR, "Viewport Controller", "Please select folder of the sequence\n");
+                            break;
+                        }
+                    }
                 }
-                else {
-                    startLoadPclThread = false;
+                
+                if ((all_scene_view_has_sequence && selected_render_mode == 0) || selected_render_mode == 1)
+                {
+                    start_portal_falg = false;
                     StartButton_disable = true;
 
                     for (auto& scene_view : *mSceneView_Container)
                     {
+                        if (selected_render_mode == 1) {
+                            scene_view->set_render_mode(selected_render_mode);
+                        }
                         scene_view->run();
                     }
 
@@ -171,7 +185,8 @@ namespace nui
 
         if (ImGui::CollapsingHeader("Scene Control", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            if (ImGui::SliderFloat("Point Size", &point_size, 1.0f, 5.0f)) {
+            ImGui::BulletText("Set point size:");
+            if (ImGui::SliderFloat(" Size", &point_size, 1.0f, 10.0f)) {
                 for (auto& scene_view : *mSceneView_Container)
                 {
                     scene_view->set_pointSize(point_size);
@@ -267,7 +282,7 @@ namespace nui
             if (ImGui::Button("Restart", ImVec2(100, 20)))
             {
                 if (selected_render_mode == 0 && StartButton_disable) {
-                    startLoadPclThread = false;
+                    start_portal_falg = false;
                     current_frame = 0;
                     for (auto& scene_view : *mSceneView_Container)
                     {
@@ -321,7 +336,7 @@ namespace nui
             mPLYFileDialog.ClearSelected();
         }
 
-        if (selected_render_mode == 0 && !startLoadPclThread)
+        if (selected_render_mode == 0 && !start_portal_falg)
         {
             mPLYFileDialog.Close();
 
@@ -332,21 +347,21 @@ namespace nui
                 // scene_view_start(scene_view.get()); 
                 scene_view->receivePointCloud();
             }
-            startLoadPclThread = true;
+            start_portal_falg = true;
         }
-        else if (selected_render_mode == 1 && !startLoadPclThread)
+        else if (selected_render_mode == 1 && !start_portal_falg)
         {
-            mSceneView_Container->front()->set_render_mode(selected_render_mode);
+            // mSceneView_Container->front()->set_render_mode(selected_render_mode);
             scene_view_start(mSceneView_Container->front().get());
-            startLoadPclThread = true;
+            start_portal_falg = true;
         }
     }
 
     void PCL_Property_Panel::scene_view_start(nui::SceneView* scene_view)
     {
-        // std::function<void()> loadGLPclFunction = [this, scene_view]() { scene_view->receivePointCloud(); };
+        std::function<void()> loadGLPclFunction = [this, scene_view]() { scene_view->receivePointCloud(); };
 
-        // captureThread = std::thread(loadGLPclFunction);
-        std::thread([this, scene_view]() { scene_view->receivePointCloud(); });
+        captureThread = std::thread(loadGLPclFunction);
+        // std::thread([this, scene_view]() { scene_view->receivePointCloud(); });
     }
 }

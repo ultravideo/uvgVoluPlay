@@ -25,10 +25,10 @@ namespace Communication {
     void Portal::signal_stop_zmq() {
         zmq::context_t stopcontext{1};
 
-        zmq::socket_t stopcolorSocket(stopcontext, ZMQ_PUSH);
+        zmq::socket_t stopcolorSocket(stopcontext, ZMQ_PULL);
         stopcolorSocket.connect("tcp://localhost:5555");
 
-        zmq::socket_t stoppositionSocket(stopcontext, ZMQ_PUSH);
+        zmq::socket_t stoppositionSocket(stopcontext, ZMQ_PULL);
         stoppositionSocket.connect("tcp://localhost:5556");
 
         zmq::message_t stopMessage(5);
@@ -43,23 +43,6 @@ namespace Communication {
 
         stopcolorSocket.close();
     }
-
-    // void Portal::set_data_stream(   std::shared_ptr<std::queue<std::shared_ptr<nelems::GLPointCloud>>> &pcl_queue_from_scene_view,
-    //                                 std::shared_ptr<nelems::Mesh> &mesh_from_scene_view,
-    //                                 SourceMode mode
-    //                                 ) {
-
-    //     switch (mode) {
-    //     case SOURCE_ZMQ:
-    //         zmq_handler = std::make_shared<zmqHandler>();
-    //         zmq_handler->mMesh = mesh_from_scene_view;
-    //         zmq_handler->pcl_queue = pcl_queue_from_scene_view;
-    //         break;
-    //     case SOURCE_SEQUENCE:
-    //         utilities::Logger::log(utilities::LogLevel::ERROR, "Portal", "setup stream Sequnce need to fix\n");
-    //         break;
-    //     }
-    // }
 
     void Portal::set_sequence_path(std::string folder_path) {
         sequence_handler->sequence_path = folder_path;
@@ -84,25 +67,40 @@ namespace Communication {
                 // Receive the color message from the client
                 zmq::message_t colorMessage;
                 auto colorRes = colorSocket.recv(colorMessage, zmq::recv_flags::none);
-                if (colorRes.has_value()) {
-                    zmq_handler->colorMessages.push(std::move(colorMessage));
-                    zmq_handler->receive_message_cv.notify_one();
+
+                if (!colorRes.has_value()) { continue; }
+
+                //if the message is "DISCONNECT", stop the loop
+                if (colorMessage.to_string() == "DISCONNECT") {
+                    utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Color socker is on hold\n");
+                    continue;;
                 }
+
+                zmq_handler->colorMessages.push(std::move(colorMessage));
+                zmq_handler->receive_message_cv.notify_one();
             }
+            utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Color thread stopped\n");
         });
 
         std::thread positionProcessThread([this, &positionSocket]() {
             utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Position thread started\n");
             
-            while (!stop_flag) {
+             while (!stop_flag) {
                 // Receive the position message from the client
                 zmq::message_t positionMessage;
                 auto positionRes = positionSocket.recv(positionMessage, zmq::recv_flags::none);
-                if (positionRes.has_value()) {
-                    zmq_handler->positionMessages.push(std::move(positionMessage));
-                    zmq_handler->receive_message_cv.notify_one();
+                if (!positionRes.has_value()) { continue; }
+
+                 //if the message is "DISCONNECT", stop the loop
+                if (positionMessage.to_string() == "DISCONNECT") {
+                    utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Position socker is on hold\n");
+                    continue;
                 }
+   
+                zmq_handler->positionMessages.push(std::move(positionMessage));
+                zmq_handler->receive_message_cv.notify_one();
             }
+            utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Position thread stopped\n");
         }); 
 
         std::unique_lock<std::mutex> lck(receive_message_mutex);
