@@ -23,6 +23,11 @@ namespace nui
         mCamera->on_mouse_wheel(delta);
     }
 
+    void SceneView::set_focus_on_fisrt_frame(glm::vec3 focus)
+    {
+        mCamera->set_focus(focus);
+    }
+
     void SceneView::render_zmq()
     {
         mShader->use();
@@ -33,11 +38,15 @@ namespace nui
 
         if (mMesh)
         {
-            std::cout << "Queue size: " << pcl_queue->size() << std::endl;
             if (!pcl_queue->empty() && parse_new_pcl)
             {                
+                if (frame_sequence_idx == 0)
+                {
+                    set_focus_on_fisrt_frame(pcl_queue->front()->getPosition(0));
+                }
                 mMesh->parse_data(pcl_queue->front());
                 parse_new_pcl = false;
+                frame_sequence_idx++;
             }
             mMesh->render();
         }
@@ -49,16 +58,6 @@ namespace nui
             pcl_queue->pop();
             parse_new_pcl = true;
         }
-
-        // if (!mesh_queue->empty() && mesh_queue->front())
-        // {
-        //     std::cout << "Queue size: " << mesh_queue->size() << std::endl;
-        //     mesh_queue->front()->render();
-        //     if (mesh_queue->size() >= 2)
-        //     {
-        //         mesh_queue->pop();
-        //     }
-        // }
 
         mFrameBuffer->unbind();
 
@@ -90,7 +89,11 @@ namespace nui
             if (*sequence_loaded && parse_new_pcl && (frame_sequence_idx < (pcl_vector->size())))
             {        
                 // Use mutex to avoid race condition
-                std::lock_guard<std::mutex> lock(frame_idx_mutex);        
+                std::lock_guard<std::mutex> lock(frame_idx_mutex);            
+                if (frame_sequence_idx == 0)
+                {
+                    set_focus_on_fisrt_frame(pcl_queue->front()->getPosition(0));
+                }       
                 mMesh->parse_data(pcl_vector->at(frame_sequence_idx));
                 parse_new_pcl = false;
             }
@@ -137,6 +140,7 @@ namespace nui
     void SceneView::receivePointCloud()
     {
         if (mRenderMode == RENDER_ZMQ) {
+            frame_sequence_idx = 0;
             mPortal->zmq_run();
         } 
         else if (mRenderMode == RENDER_SEQUENCE)
@@ -156,6 +160,7 @@ namespace nui
         {
         case RENDER_ZMQ:
             mPortal->stop_signal();
+            frame_sequence_idx = 0;
             break;
         case RENDER_SEQUENCE:
             pcl_vector->clear();

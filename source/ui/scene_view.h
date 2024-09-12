@@ -47,7 +47,8 @@ namespace nui
       mShader->load("shaders/vs.shader", "shaders/fr_nolight.shader");
       mLight = std::make_unique<nelems::Light>();
 
-      mCamera = std::make_unique<nelems::Camera>(glm::vec3(10, 100, 200), 45.0f, 1.3f, 0.1f, 2000.0f);
+      mCamera = std::make_unique<nelems::Camera>(glm::vec3(-94, 272, -251), 45.0f, 1.3f, 0.1f, 2000.0f);
+      // mCamera = std::make_unique<nelems::Camera>(glm::vec3(10, 100, 200), 45.0f, 1.3f, 0.1f, 2000.0f);
 
       if (!mMesh) {
           mMesh = std::make_shared<nelems::Mesh>();
@@ -68,6 +69,8 @@ namespace nui
     void on_mouse_move(double x, double y, nelems::EInputButton button);
 
     void on_mouse_wheel(double delta);
+
+    void set_focus_on_fisrt_frame(glm::vec3 focus);
 
     void reset_view() { mCamera->reset(); }
 

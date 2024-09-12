@@ -26,10 +26,10 @@ namespace Communication {
         zmq::context_t stopcontext{1};
 
         zmq::socket_t stopcolorSocket(stopcontext, ZMQ_PULL);
-        stopcolorSocket.connect("tcp://localhost:5555");
+        stopcolorSocket.connect(zmq_handler->color_address);
 
         zmq::socket_t stoppositionSocket(stopcontext, ZMQ_PULL);
-        stoppositionSocket.connect("tcp://localhost:5556");
+        stoppositionSocket.connect( zmq_handler->position_address);
 
         zmq::message_t stopMessage(5);
         memcpy(stopMessage.data(), "stop", 5);
@@ -38,8 +38,8 @@ namespace Communication {
         stoppositionSocket.send(stopMessage, zmq::send_flags::none);
 
         // Disconnect the sockets
-        stopcolorSocket.disconnect("tcp://localhost:5555");
-        stoppositionSocket.disconnect("tcp://localhost:5556");
+        stopcolorSocket.disconnect(zmq_handler->color_address);
+        stoppositionSocket.disconnect( zmq_handler->position_address);
 
         stopcolorSocket.close();
     }

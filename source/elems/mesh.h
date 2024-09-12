@@ -10,7 +10,6 @@
 
 #include "render/render_base.h"
 #include "elems/pointcloud.h"
-// #include "elems/vertex_holder.h"
 #include "elems/element.h"
 
 namespace nelems
