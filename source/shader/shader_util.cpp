@@ -38,7 +38,7 @@ namespace nshaders
 		const std::string f_fs((std::istreambuf_iterator<char>(is_fs)), std::istreambuf_iterator<char>());
 
 		mProgramId = glCreateProgram();
-std::cout << "mProgramId: " << mProgramId << std::endl;
+
 		unsigned int vs = get_compiled_shader(GL_VERTEX_SHADER, f_vs);
 		unsigned int fs = get_compiled_shader(GL_FRAGMENT_SHADER, f_fs);
 

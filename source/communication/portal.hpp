@@ -22,12 +22,15 @@ namespace Communication {
         // Communication
         std::string color_address = "tcp://*:5555";             // Default address for color
         std::string position_address = "tcp://*:5556";          // Default address for position
+        // std::string color_address = "tcp://10.21.25.231:5555";             // Default address for color
+        // std::string position_address = "tcp://10.21.25.231:5556";          // Default address for position
         std::queue<zmq::message_t> colorMessages;               // Queue for color messages
         std::queue<zmq::message_t> positionMessages;            // Queue for position messages
         std::condition_variable receive_message_cv;             // Condition variable for receiving messages
 
         // Data Container    
         std::shared_ptr<std::queue<std::shared_ptr<nelems::GLPointCloud>>> pcl_queue;
+        
         std::shared_ptr<nelems::Mesh> mMesh = nullptr;
     };
 

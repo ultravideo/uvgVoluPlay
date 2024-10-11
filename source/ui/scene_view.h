@@ -102,6 +102,8 @@ namespace nui
 
     void set_background_color(float r, float g, float b);
 
+    void setup_socket(char * position_socket, char * color_socket);
+
   private:
     void render_zmq();
 

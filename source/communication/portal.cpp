@@ -19,29 +19,7 @@ namespace Communication {
 
     void Portal::stop_signal() {
         stop_flag = true;
-        zmq_handler->receive_message_cv.notify_one();
-    }
-
-    void Portal::signal_stop_zmq() {
-        zmq::context_t stopcontext{1};
-
-        zmq::socket_t stopcolorSocket(stopcontext, ZMQ_PULL);
-        stopcolorSocket.connect(zmq_handler->color_address);
-
-        zmq::socket_t stoppositionSocket(stopcontext, ZMQ_PULL);
-        stoppositionSocket.connect( zmq_handler->position_address);
-
-        zmq::message_t stopMessage(5);
-        memcpy(stopMessage.data(), "stop", 5);
-
-        stopcolorSocket.send(stopMessage, zmq::send_flags::none);
-        stoppositionSocket.send(stopMessage, zmq::send_flags::none);
-
-        // Disconnect the sockets
-        stopcolorSocket.disconnect(zmq_handler->color_address);
-        stoppositionSocket.disconnect( zmq_handler->position_address);
-
-        stopcolorSocket.close();
+        zmq_handler->receive_message_cv.notify_all();
     }
 
     void Portal::set_sequence_path(std::string folder_path) {
@@ -56,49 +34,58 @@ namespace Communication {
         colorSocket.bind(zmq_handler->color_address);
         positionSocket.bind(zmq_handler->position_address);
 
+        colorSocket.set(zmq::sockopt::rcvtimeo, 2000);
+        positionSocket.set(zmq::sockopt::rcvtimeo, 2000);
+
         std::mutex receive_message_mutex;
+        int counter = 0;
 
         utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Context created\n");
 
         //2 thread for receiving color and position messages
-        std::thread colorProcessThread([this, &colorSocket]() {
+        std::thread colorProcessThread([this, &colorSocket, &counter]() {
             utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Color thread started\n");
             while (!stop_flag) {
                 // Receive the color message from the client
                 zmq::message_t colorMessage;
                 auto colorRes = colorSocket.recv(colorMessage, zmq::recv_flags::none);
 
-                if (!colorRes.has_value()) { continue; }
+                if (colorRes && colorRes.has_value()) { 
+                    zmq_handler->colorMessages.push(std::move(colorMessage));
+                    zmq_handler->receive_message_cv.notify_one();
+                    counter++;
+                }
+                else if (!colorRes && counter != 0) {
+                    std::cout << "Timeout: No message received." << std::endl;
+                    stop_signal();
+                }
 
                 //if the message is "DISCONNECT", stop the loop
                 if (colorMessage.to_string() == "DISCONNECT") {
                     utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Color socker is on hold\n");
-                    continue;;
+                    break;
                 }
 
-                zmq_handler->colorMessages.push(std::move(colorMessage));
-                zmq_handler->receive_message_cv.notify_one();
             }
             utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Color thread stopped\n");
         });
 
-        std::thread positionProcessThread([this, &positionSocket]() {
+        std::thread positionProcessThread([this, &positionSocket, counter]() {
             utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Position thread started\n");
             
              while (!stop_flag) {
                 // Receive the position message from the client
                 zmq::message_t positionMessage;
                 auto positionRes = positionSocket.recv(positionMessage, zmq::recv_flags::none);
-                if (!positionRes.has_value()) { continue; }
 
-                 //if the message is "DISCONNECT", stop the loop
-                if (positionMessage.to_string() == "DISCONNECT") {
-                    utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Position socker is on hold\n");
-                    continue;
+                if (positionRes && positionRes.has_value()) {   
+                    zmq_handler->positionMessages.push(std::move(positionMessage));
+                    zmq_handler->receive_message_cv.notify_one();
                 }
-   
-                zmq_handler->positionMessages.push(std::move(positionMessage));
-                zmq_handler->receive_message_cv.notify_one();
+                else if (!positionRes && counter != 0) {
+                    std::cout << "Timeout: No message received." << std::endl;
+                    stop_signal();
+                }
             }
             utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Position thread stopped\n");
         }); 
@@ -127,17 +114,9 @@ namespace Communication {
             
             zmq_handler->positionMessages.pop();
             zmq_handler->colorMessages.pop();
-
-            // auto end = std::chrono::high_resolution_clock::now();
-            // std::chrono::duration<double> elapsed = end - start;
-            // std::cout << "Time taken to create PCL: " << elapsed.count() << "s\n";
         }
 
         utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Stopping Components Threads\n");
-
-        // Sleep for 5 seconds to allow the components to stop
-        std::this_thread::sleep_for(std::chrono::seconds(5));
-        signal_stop_zmq();
 
         colorProcessThread.join();
         positionProcessThread.join();

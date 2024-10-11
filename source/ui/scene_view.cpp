@@ -90,10 +90,10 @@ namespace nui
             {        
                 // Use mutex to avoid race condition
                 std::lock_guard<std::mutex> lock(frame_idx_mutex);            
-                if (frame_sequence_idx == 0)
-                {
-                    set_focus_on_fisrt_frame(pcl_queue->front()->getPosition(0));
-                }       
+                // if (frame_sequence_idx == 0)
+                // {
+                //     set_focus_on_fisrt_frame(pcl_queue->front()->getPosition(0));
+                // }       
                 mMesh->parse_data(pcl_vector->at(frame_sequence_idx));
                 parse_new_pcl = false;
             }
@@ -108,6 +108,8 @@ namespace nui
                 std::lock_guard<std::mutex> lock(frame_idx_mutex);
                 frame_sequence_idx++;
                 parse_new_pcl = true;
+            } else if (*sequence_loaded && (frame_sequence_idx >= (pcl_vector->size() - 1)) && !is_paused) {
+                frame_sequence_idx = 0;
             }
         }
 
@@ -252,5 +254,11 @@ namespace nui
     void SceneView::set_background_color(float r, float g, float b)
     {
         mFrameBuffer->set_background_color(r, g, b);
+    }
+
+    void SceneView::setup_socket(char * position_socket, char * color_socket)
+    {
+        mPortal->set_position_socket(position_socket);
+        mPortal->set_color_socket(color_socket);
     }
 }

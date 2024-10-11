@@ -37,7 +37,7 @@ namespace nui
         //Drop down setup
         bool showDropdown = false;
         int selected_render_mode = 0; // Index of the selected item
-        const char* render_mode_items[2] = { "Folder Sequence", "Kinect(s)" }; // Example items
+        const char* render_mode_items[2] = { "Folder Sequence", "uvgVoluCap" }; // Example items
 
         // create a file browser instance
         ImGui::FileBrowser mPLYFileDialog;
@@ -60,5 +60,8 @@ namespace nui
         int current_frame = 0;
         int total_frames = 0;
         float bg_color[3] = { 0.155f, 0.2f, 0.156f };
+
+        char zmq_position_address[64] = "tcp://*:5556";
+        char zmq_color_address[64] = "tcp://*:5555";
     };
 }

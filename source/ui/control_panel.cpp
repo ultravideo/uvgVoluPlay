@@ -100,6 +100,16 @@ namespace nui
                 break;
             case 1:
                 ImGui::Text("Receive from Kinect(s)");
+                // Textbox for the IP addresses
+                ImGui::AlignTextToFramePadding();
+                ImGui::BulletText("Position Socket: ");
+                ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
+                ImGui::InputText("##position_socket", zmq_position_address, 64);
+
+                ImGui::AlignTextToFramePadding();
+                ImGui::BulletText("Color Socket:    ");
+                ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
+                ImGui::InputText("##color_socket", zmq_color_address, 64);
                 break;
             default:
                 break;
@@ -129,10 +139,22 @@ namespace nui
                     start_portal_falg = false;
                     StartButton_disable = true;
 
+                    if (mSceneView_Container->empty())
+                    {
+                        for (auto& scene_view : mSceneView_Names)
+                        {
+                            std::shared_ptr<nui::SceneView> new_scene_view = std::make_shared<nui::SceneView>();
+                            new_scene_view->set_scene_name(scene_view.first);
+                            mSceneView_Container->push_back(new_scene_view);
+                        }
+                        utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "SceneView container created\n");
+                    }
+
                     for (auto& scene_view : *mSceneView_Container)
                     {
                         if (selected_render_mode == 1) {
                             scene_view->set_render_mode(selected_render_mode);
+                            scene_view->setup_socket(zmq_position_address, zmq_color_address);
                         }
                         scene_view->run();
                     }
@@ -149,6 +171,8 @@ namespace nui
                 {
                     scene_view->stop();
                 }
+
+                mSceneView_Container->clear();
 
                 StartButton_disable = false;
                 utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Signal to stop Portal\n");
