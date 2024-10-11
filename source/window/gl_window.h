@@ -11,9 +11,8 @@
 
 #include "window/window.h"
 
-#include "ui/pcl_property_panel.h"
+#include "ui/control_panel.h"
 #include "ui/property_panel.h"
-#include "ui/stat_panel.h"
 #include "ui/scene_view.h"
 
 using namespace nui;
@@ -25,6 +24,9 @@ namespace nwindow
 {
   class GLWindow : public IWindow
   {
+  private:
+    std::shared_ptr<std::vector<std::shared_ptr<nui::SceneView>>> mSceneView_Container = std::make_shared<std::vector<std::shared_ptr<nui::SceneView>>>();
+    
   public:
 
     GLWindow() :
@@ -74,9 +76,7 @@ namespace nwindow
 
     std::unique_ptr<PCL_Property_Panel> mPCLPropertyPanel;
 
-    std::unique_ptr<Stat_Panel> mStatPanel;
-
-    std::unique_ptr<SceneView> mSceneView;
+    std::unique_ptr<SceneView> mSceneView_2;
 
     bool mIsRunning;
 

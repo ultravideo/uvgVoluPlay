@@ -21,6 +21,9 @@ namespace nelems
 			mFar = far;
 			mFOV = fov;
 
+			// mFocus = { 40.0f, 0.0f, 210.0f };
+			mDistance = 550.0f;
+
 			set_aspect(mAspect);
 
 			update_view_matrix();
@@ -35,10 +38,19 @@ namespace nelems
 			shader->set_vec3(mPosition, "camPos");
 		}
 
-    void set_aspect(float aspect)
-    {
-      mProjection = glm::perspective(mFOV, aspect, mNear, mFar);
-    }
+		void set_focus(const glm::vec3& focus)
+		{
+			// if focuse == 0,0,0, then change to the given focus
+			// if (focus == glm::vec3(0.0f, 0.0f, 0.0f)) {
+				mFocus = focus;
+				update_view_matrix();
+			// }
+		}
+
+		void set_aspect(float aspect)
+		{
+		mProjection = glm::perspective(mFOV, aspect, mNear, mFar);
+		}
 
 		void set_distance(float offset)
 		{
@@ -51,10 +63,10 @@ namespace nelems
 			return mProjection;
 		}
 
-    glm::mat4 get_view_projection() const
-    {
-      return mProjection * get_view_matrix();
-    }
+		glm::mat4 get_view_projection() const
+		{
+		return mProjection * get_view_matrix();
+		}
 
 		glm::vec3 get_up() const
 		{

@@ -34,6 +34,9 @@ namespace nrender
 
   class OpenGL_FrameBuffer : public FrameBuffer
   {
+  private:
+    float background_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
   public:
 
     void create_buffers(int32_t width, int32_t height) override;
@@ -45,5 +48,7 @@ namespace nrender
     void unbind() override;
     
     uint32_t get_texture() override;
+
+    void set_background_color(float r, float g, float b);
   };
 }

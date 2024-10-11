@@ -31,8 +31,8 @@ namespace nelems
 		bool GLPointCloud::IsEmpty() const;
 
 		size_t mSize = 0;
-		std::shared_ptr<std::vector<glm::vec3>> positions;
-    	std::shared_ptr<std::vector<glm::vec3>> attributes;
+		std::shared_ptr<std::vector<glm::vec3>> positions = std::make_shared<std::vector<glm::vec3>>();
+    	std::shared_ptr<std::vector<glm::vec3>> attributes = std::make_shared<std::vector<glm::vec3>>();
 		
 	public:
 		GLPointCloud() { mSize = 0; };

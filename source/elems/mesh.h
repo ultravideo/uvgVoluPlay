@@ -10,7 +10,6 @@
 
 #include "render/render_base.h"
 #include "elems/pointcloud.h"
-// #include "elems/vertex_holder.h"
 #include "elems/element.h"
 
 namespace nelems
@@ -23,8 +22,6 @@ namespace nelems
     Mesh() = default;
 
     virtual ~Mesh();
-
-    void load(const std::string& filepath);
 
     void update(nshaders::Shader* shader) override
     {
@@ -60,6 +57,8 @@ namespace nelems
     // Buffers manager
     std::unique_ptr<nrender::VertexIndexBuffer> mRenderBufferMgr;
     int currnet_points = 0;
+
+    std::shared_ptr<nelems::GLPointCloud> pcl = nullptr;
   };
 }
 

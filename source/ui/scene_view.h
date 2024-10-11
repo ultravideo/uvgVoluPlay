@@ -19,6 +19,21 @@
 
 namespace nui
 {
+  enum RenderMode
+  {
+    RENDER_SEQUENCE = 0,
+    RENDER_ZMQ = 1,
+  };
+
+  // Playback Components
+    enum PlaybackMode
+    {
+        PLAYING,
+        PAUSED,
+        STOPPED,
+        LOOPING
+    };
+
   class SceneView
   {
   public:
@@ -32,14 +47,13 @@ namespace nui
       mShader->load("shaders/vs.shader", "shaders/fr_nolight.shader");
       mLight = std::make_unique<nelems::Light>();
 
-      mCamera = std::make_unique<nelems::Camera>(glm::vec3(0, 10, 20), 45.0f, 1.3f, 0.1f, 2000.0f);
+      mCamera = std::make_unique<nelems::Camera>(glm::vec3(-94, 272, -251), 45.0f, 1.3f, 0.1f, 2000.0f);
+      // mCamera = std::make_unique<nelems::Camera>(glm::vec3(10, 100, 200), 45.0f, 1.3f, 0.1f, 2000.0f);
 
       if (!mMesh) {
           mMesh = std::make_shared<nelems::Mesh>();
       }
       mMesh->init();
-
-      mPortal->set_data_stream(pcl_queue, mMesh);
     }
 
     ~SceneView()
@@ -51,16 +65,12 @@ namespace nui
     nelems::Light* get_light() { return mLight.get(); }
 
     void resize(int32_t width, int32_t height);
-
-    void set_input(int mode);
-
-    void render_zmq();
-
-    void render_sequence(); // Later
     
     void on_mouse_move(double x, double y, nelems::EInputButton button);
 
     void on_mouse_wheel(double delta);
+
+    void set_focus_on_fisrt_frame(glm::vec3 focus);
 
     void reset_view() { mCamera->reset(); }
 
@@ -69,6 +79,35 @@ namespace nui
     void stop();
 
     void set_pointSize(float pointSize);
+
+    void set_scene_name(std::string name);
+
+    void set_sequence_path(std::string path);
+
+    void render();
+
+    void set_render_mode(int mode);
+
+    std::string get_scene_name();
+
+    void run();
+
+    int get_total_frames();
+
+    int get_current_frame();
+
+    void set_frame_idx(size_t idx);
+
+    void set_pause(bool pause);
+
+    void set_background_color(float r, float g, float b);
+
+    void setup_socket(char * position_socket, char * color_socket);
+
+  private:
+    void render_zmq();
+
+    void render_sequence(); // Later
   
   private:
     std::unique_ptr<nelems::Camera> mCamera;
@@ -77,16 +116,23 @@ namespace nui
     std::unique_ptr<nelems::Light> mLight;
     std::shared_ptr<nelems::Mesh> mMesh = nullptr;
 
-
+    std::shared_ptr<std::vector<std::shared_ptr<nelems::GLPointCloud>>> pcl_vector = std::make_shared<std::vector<std::shared_ptr<nelems::GLPointCloud>>>();
     std::shared_ptr<std::queue<std::shared_ptr<nelems::Mesh>>> mesh_queue = std::make_shared<std::queue<std::shared_ptr<nelems::Mesh>>>();
     std::shared_ptr<std::queue<std::shared_ptr<nelems::GLPointCloud>>> pcl_queue = std::make_shared<std::queue<std::shared_ptr<nelems::GLPointCloud>>>();
     std::shared_ptr<Communication::Portal> mPortal = std::make_shared<Communication::Portal>();
 
     glm::vec2 mSize;
-    int InputMode = 0;
     float mpointSize = 1.0f;
 
     bool parse_new_pcl = false;
+    std::string scene_name = "Scene 0";
+    std::shared_ptr<std::function<void()>> render_mode_ptr = nullptr;
+
+    RenderMode mRenderMode = RENDER_SEQUENCE;
+    size_t frame_sequence_idx = 0;
+    std::shared_ptr<bool> sequence_loaded = std::make_shared<bool>(false);
+    std::mutex frame_idx_mutex;
+    bool is_paused = false;
   };
 }
 
