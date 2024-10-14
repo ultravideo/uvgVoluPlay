@@ -12,7 +12,6 @@
 #include "window/window.h"
 
 #include "ui/control_panel.h"
-#include "ui/property_panel.h"
 #include "ui/scene_view.h"
 
 using namespace nui;
@@ -72,7 +71,6 @@ namespace nwindow
     std::unique_ptr<OpenGL_Context> mRenderCtx;
 
     // UI components
-    std::unique_ptr<Property_Panel> mPropertyPanel;
 
     std::unique_ptr<PCL_Property_Panel> mPCLPropertyPanel;
 

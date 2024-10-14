@@ -1,6 +1,10 @@
 {
   "dependencies": [
     "cppzmq",
-    "opencl"
+    "opencl",
+    "imgui",
+    "glfw3",	
+    "glew",
+    "glm"
   ]
 }

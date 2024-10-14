@@ -6,7 +6,7 @@
 
 #include "imgui.h"
 #include "utils/imgui_widgets.h"
-#include <ImFileBrowser.h>
+#include "3rdparty/plugins/imgui/ImFileBrowser.h"
 
 namespace nui
 {

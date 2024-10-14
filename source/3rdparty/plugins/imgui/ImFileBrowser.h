@@ -460,9 +460,11 @@ inline void ImGui::FileBrowser::Display()
 
     SameLine();
 
-    int escIdx = GetIO().KeyMap[ImGuiKey_Escape];
+    ImGuiContext& g = *GImGui;
+    ImGuiIO& io = g.IO;
+    int escIdx = io.KeyMap[ImGuiKey_Escape];
     if(Button(cancel_.c_str()) || closeFlag_ ||
-        ((flags_ & ImGuiFileBrowserFlags_CloseOnEsc) && IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && escIdx >= 0 && IsKeyPressed(escIdx)))
+        ((flags_ & ImGuiFileBrowserFlags_CloseOnEsc) && IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && escIdx >= 0 && IsKeyPressed(static_cast<ImGuiKey>(escIdx), false)))
         CloseCurrentPopup();
 
     if(!statusStr_.empty() && !(flags_ & ImGuiFileBrowserFlags_NoStatusBar))

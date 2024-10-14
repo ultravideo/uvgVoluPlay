@@ -24,10 +24,6 @@ namespace nwindow
     mPCLPropertyPanel = std::make_unique<PCL_Property_Panel>();
     mPCLPropertyPanel->set_scene_view_container(mSceneView_Container);
 
-    // mStatPanel = std::make_unique<Stat_Panel>();
-
-    //mPropertyPanel = std::make_unique<Property_Panel>();
-
     return mIsRunning;
   }
 

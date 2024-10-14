@@ -8,7 +8,7 @@
             "name": "Windows",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/uvgVisualizer.exe",
+            "program": "${workspaceFolder}/build/bin/Visualizer.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
