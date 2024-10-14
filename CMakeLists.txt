@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.27)
-set(PROJECT_NAME Visualizer)
+set(PROJECT_NAME uvgVisualizer)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
@@ -42,7 +42,35 @@ set(no_group_source_files
     "shaders/vs.shader"
 )
 source_group("" FILES ${no_group_source_files})
-file(GLOB_RECURSE Headers "source/**/*.h" "source/**/*.hpp")
+
+set(Headers
+    "source/3rdparty/plugins/imgui/ImFileBrowser.h"
+    "source/application.h"
+    "source/elems/pointcloud.h"
+    "source/elems/camera.h"
+    "source/elems/element.h"
+    "source/elems/input.h"
+    "source/elems/light.h"
+    "source/elems/mesh.h"
+    "source/main.h"
+    "source/pch.h"
+    "source/ply_import/miniply.h"
+    "source/render/opengl_buffer_manager.h"
+    "source/render/opengl_context.h"
+    "source/render/render_base.h"
+    "source/render/ui_context.h"
+    "source/shader/shader_util.h"
+    "source/ui/control_panel.h"
+    "source/ui/scene_view.h"
+    "source/utils/imgui_widgets.h"
+    "source/utils/str_utils.h"
+    "source/window/gl_window.h"
+    "source/window/window.h"
+    "source/utils/chrono.hpp"
+    "source/utils/log.hpp"
+    "source/utils/threadqueue.hpp"
+    "source/communication/portal.hpp"
+)
 source_group("Headers" FILES ${Headers})
 
 set(Sources
@@ -71,7 +99,6 @@ set(Sources
     "source/utils/threadqueue.cpp"
     "source/communication/portal.cpp"
 )
-
 source_group("Sources" FILES ${Sources})
 
 set(ALL_FILES
