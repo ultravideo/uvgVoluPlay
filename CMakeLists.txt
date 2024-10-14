@@ -120,7 +120,7 @@ set(ROOT_NAMESPACE uvg_Visualizer)
 ################################################################################
 # Include directories
 ################################################################################
-if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
+# if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
     target_include_directories(${PROJECT_NAME} PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/source;"
         "${CMAKE_CURRENT_SOURCE_DIR}/source/3rdparty/imgui-docking;"
@@ -135,8 +135,8 @@ if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
     find_package(imgui CONFIG REQUIRED)
     target_link_libraries(${PROJECT_NAME} PRIVATE   cppzmq 
                                                     cppzmq-static
-                                                    glm::glm-header-only
                                                     glfw
+                                                    glm::glm-header-only
                                                     GLEW::GLEW
                                                     imgui::imgui
     )
@@ -144,11 +144,13 @@ if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
     if (OPENMP_FOUND)
         target_link_libraries(${PROJECT_NAME} OpenMP::OpenMP_CXX)
     endif()
-endif()
+
+    message(STATUS "Added 3rd party libraries")
+# endif()
 
 # Define installation destinations
-set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/build/bin" CACHE PATH "Install path prefix" FORCE)
-set(INSTALL_CONFIG_DIR "Release")
+# set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/build/bin" CACHE PATH "Install path prefix" FORCE)
+# set(INSTALL_CONFIG_DIR "Release")
 
-install(DIRECTORY ${CMAKE_BINARY_DIR}/${INSTALL_CONFIG_DIR}/ DESTINATION ${CMAKE_INSTALL_PREFIX})
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/shaders DESTINATION ${CMAKE_INSTALL_PREFIX})
+# install(DIRECTORY ${CMAKE_BINARY_DIR}/${INSTALL_CONFIG_DIR}/ DESTINATION ${CMAKE_INSTALL_PREFIX})
+# install(DIRECTORY ${CMAKE_SOURCE_DIR}/shaders DESTINATION ${CMAKE_INSTALL_PREFIX})

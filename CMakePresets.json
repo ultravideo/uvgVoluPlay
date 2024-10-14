@@ -3,10 +3,11 @@
     "configurePresets": [
       {
         "name": "default",
-        "generator": "Visual Studio 17 2022",
+        "generator": "Ninja",
         "binaryDir": "${sourceDir}/build",
         "cacheVariables": {
-          "CMAKE_TOOLCHAIN_FILE": "C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          "CMAKE_TOOLCHAIN_FILE": "C:/vcpkg/scripts/buildsystems/vcpkg.cmake",
+          "CMAKE_BUILD_TYPE": "Release"
         }
       },
       {
@@ -14,7 +15,8 @@
         "generator": "Ninja",
         "binaryDir": "${sourceDir}/build",
         "cacheVariables": {
-          "CMAKE_TOOLCHAIN_FILE": "/home/username/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          "CMAKE_TOOLCHAIN_FILE": "/home/username/vcpkg/scripts/buildsystems/vcpkg.cmake",
+          "CMAKE_BUILD_TYPE": "Release"
         }
       },
       {
@@ -22,7 +24,8 @@
         "generator": "Ninja",
         "binaryDir": "${sourceDir}/build",
         "cacheVariables": {
-          "CMAKE_TOOLCHAIN_FILE": "/Users/username/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          "CMAKE_TOOLCHAIN_FILE": "/Users/username/vcpkg/scripts/buildsystems/vcpkg.cmake",
+          "CMAKE_BUILD_TYPE": "Release"
         }
       }
     ]
