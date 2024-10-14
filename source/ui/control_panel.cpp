@@ -99,7 +99,7 @@ namespace nui
                 
                 break;
             case 1:
-                ImGui::Text("Receive from Kinect(s)");
+                ImGui::Text("Receive from Depth Sensor(s)");
                 // Textbox for the IP addresses
                 ImGui::AlignTextToFramePadding();
                 ImGui::BulletText("Position Socket: ");
@@ -134,21 +134,18 @@ namespace nui
                     }
                 }
                 
-                if ((all_scene_view_has_sequence && selected_render_mode == 0) || selected_render_mode == 1)
+                if ((all_scene_view_has_sequence && selected_render_mode == 0) || (selected_render_mode == 1))
                 {
-                    start_portal_falg = false;
-                    StartButton_disable = true;
-
                     if (mSceneView_Container->empty())
                     {
-                        for (auto& scene_view : mSceneView_Names)
-                        {
-                            std::shared_ptr<nui::SceneView> new_scene_view = std::make_shared<nui::SceneView>();
-                            new_scene_view->set_scene_name(scene_view.first);
-                            mSceneView_Container->push_back(new_scene_view);
-                        }
-                        utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "SceneView container created\n");
+                        std::shared_ptr<nui::SceneView> new_scene_view = std::make_shared<nui::SceneView>();
+                        new_scene_view->set_scene_name("Scene " + std::to_string(mSceneView_Container->size()));
+                        mSceneView_Container->push_back(new_scene_view);
+                        mSceneView_Names.push_back(std::make_pair(new_scene_view->get_scene_name(), ""));
                     }
+
+                    start_portal_falg = false;
+                    StartButton_disable = true;
 
                     for (auto& scene_view : *mSceneView_Container)
                     {
@@ -160,6 +157,12 @@ namespace nui
                     }
 
                     utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Signal to start Portal\n");
+                } else {
+                    if (all_scene_view_has_sequence && selected_render_mode == 0) {
+                        utilities::Logger::log(utilities::LogLevel::ERROR, "Viewport Controller", "Please add at least 1 scene view\n");
+                    } else if (selected_render_mode == 1) {
+                        utilities::Logger::log(utilities::LogLevel::ERROR, "Viewport Controller", "Please add scene view before running\n");
+                    }
                 }
             }
 
@@ -171,10 +174,16 @@ namespace nui
                 {
                     scene_view->stop();
                 }
+                        
+                if (captureThread.joinable())
+                {
+                    captureThread.join();
+                }
 
                 mSceneView_Container->clear();
 
                 StartButton_disable = false;
+                
                 utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Signal to stop Portal\n");
             }
 
@@ -186,10 +195,14 @@ namespace nui
                 ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
                 if (ImGui::Button("Add Views", ImVec2(100, 20)))
                 {
-                    std::shared_ptr<nui::SceneView> new_scene_view = std::make_shared<nui::SceneView>();
-                    new_scene_view->set_scene_name("Scene " + std::to_string(mSceneView_Container->size()));
-                    mSceneView_Container->push_back(new_scene_view);
-                    mSceneView_Names.push_back(std::make_pair(new_scene_view->get_scene_name(), ""));
+                    if (selected_render_mode == 1) {
+                        utilities::Logger::log(utilities::LogLevel::ERROR, "Viewport Controller", "ZMQ mode only support 1 scene view\n");
+                    } else {
+                        std::shared_ptr<nui::SceneView> new_scene_view = std::make_shared<nui::SceneView>();
+                        new_scene_view->set_scene_name("Scene " + std::to_string(mSceneView_Container->size()));
+                        mSceneView_Container->push_back(new_scene_view);
+                        mSceneView_Names.push_back(std::make_pair(new_scene_view->get_scene_name(), ""));
+                    }
                 }
 
                 ImGui::Text(" ");
@@ -375,7 +388,6 @@ namespace nui
         }
         else if (selected_render_mode == 1 && !start_portal_falg)
         {
-            // mSceneView_Container->front()->set_render_mode(selected_render_mode);
             scene_view_start(mSceneView_Container->front().get());
             start_portal_falg = true;
         }

@@ -258,7 +258,13 @@ namespace nui
 
     void SceneView::setup_socket(char * position_socket, char * color_socket)
     {
-        mPortal->set_position_socket(position_socket);
-        mPortal->set_color_socket(color_socket);
+        if (mPortal)
+        {
+            mPortal->set_position_socket(position_socket);
+            mPortal->set_color_socket(color_socket);
+        }
+        else {
+            utilities::Logger::log(utilities::LogLevel::ERROR, "SceneView", "Portal is not initialized\n");
+        }
     }
 }
