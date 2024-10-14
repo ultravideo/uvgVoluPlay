@@ -91,11 +91,6 @@ namespace nwindow
       scene_view->render();
     }
 
-    
-
-    // //         // Sleep to macth 30 fps
-    // std::this_thread::sleep_for(std::chrono::milliseconds(12));
-    
     // Render the UI 
     mUICtx->post_render();
 

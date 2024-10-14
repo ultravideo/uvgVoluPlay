@@ -123,9 +123,6 @@ namespace Communication {
 
         utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Components Threads stopped\n");
 
-        // colorSocket.unbind(color_address); 
-        // positionSocket.unbind(position_address);
-
         colorSocket.close();
         positionSocket.close();
         context.close();

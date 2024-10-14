@@ -36,8 +36,8 @@ namespace nui
 
         //Drop down setup
         bool showDropdown = false;
-        int selected_render_mode = 0; // Index of the selected item
-        const char* render_mode_items[2] = { "Folder Sequence", "uvgVoluCap" }; // Example items
+        int selected_render_mode = 1; // Index of the selected item
+        const char* render_mode_items[2] = { "Folder Sequence", "ZMQ sender" }; // Example items
 
         // create a file browser instance
         ImGui::FileBrowser mPLYFileDialog;
