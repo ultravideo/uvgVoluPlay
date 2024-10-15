@@ -24,7 +24,7 @@
         "generator": "Ninja",
         "binaryDir": "${sourceDir}/build",
         "cacheVariables": {
-          "CMAKE_TOOLCHAIN_FILE": "/Users/username/vcpkg/scripts/buildsystems/vcpkg.cmake",
+          "CMAKE_TOOLCHAIN_FILE": "/Users/ultravideo/Workspace/Thong/vcpkg/scripts/buildsystems/vcpkg.cmake",
           "CMAKE_BUILD_TYPE": "Release"
         }
       }

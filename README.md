@@ -29,6 +29,10 @@ To build this project from source, you'll need to have vcpkg installed and added
 After following these steps, you should be able to build the project successfully.
 
 4. Build project:
+   - For Mac: run 
+      ```
+      brew install pkg-config
+      ```
    - Run this command:
      ```
      cmake --preset=default

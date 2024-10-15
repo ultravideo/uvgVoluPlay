@@ -10,7 +10,6 @@
 #include <cmath>
 #include <unordered_map>
 #include <queue>
-#include <omp.h>
 #include <memory>
 #include <cstdlib>
 #include <string>
