@@ -158,3 +158,6 @@ message(STATUS "Added 3rd party libraries")
 
 # install(DIRECTORY ${CMAKE_BINARY_DIR}/${INSTALL_CONFIG_DIR}/ DESTINATION ${CMAKE_INSTALL_PREFIX})
 # install(DIRECTORY ${CMAKE_SOURCE_DIR}/shaders DESTINATION ${CMAKE_INSTALL_PREFIX})
+
+# Copy the shaders to the build directory
+file(COPY ${CMAKE_SOURCE_DIR}/shaders DESTINATION ${CMAKE_BINARY_DIR})
