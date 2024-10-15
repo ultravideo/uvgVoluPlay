@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __APPLE__
+#pragma clang diagnostic ignored "-Wformat-security" 
+#endif
+
 #if __has_include(<filesystem>)
 #  include <filesystem>
 #elif __has_include(<experimental/filesystem>)
@@ -279,7 +283,11 @@ inline void ImGui::FileBrowser::Display()
     // display elements in pwd
 
     int secIdx = 0, newPwdLastSecIdx = -1;
+#ifdef __APPLE__
+    for(const auto &sec : pwd_) 
+#else
     for(auto &sec : pwd_)
+#endif 
     {
 #ifdef _WIN32
         if(secIdx == 1)
@@ -301,7 +309,11 @@ inline void ImGui::FileBrowser::Display()
     {
         int i = 0;
         std::filesystem::path newPwd;
+#ifdef __APPLE__
+        for(const auto &sec : pwd_) 
+#else
         for(auto &sec : pwd_)
+#endif 
         {
             if(i++ > newPwdLastSecIdx)
                 break;
@@ -460,9 +472,11 @@ inline void ImGui::FileBrowser::Display()
 
     SameLine();
 
-    int escIdx = GetIO().KeyMap[ImGuiKey_Escape];
+    ImGuiContext& g = *GImGui;
+    ImGuiIO& io = g.IO;
+    int escIdx = io.KeyMap[ImGuiKey_Escape];
     if(Button(cancel_.c_str()) || closeFlag_ ||
-        ((flags_ & ImGuiFileBrowserFlags_CloseOnEsc) && IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && escIdx >= 0 && IsKeyPressed(escIdx)))
+        ((flags_ & ImGuiFileBrowserFlags_CloseOnEsc) && IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && escIdx >= 0 && IsKeyPressed(static_cast<ImGuiKey>(escIdx), false)))
         CloseCurrentPopup();
 
     if(!statusStr_.empty() && !(flags_ & ImGuiFileBrowserFlags_NoStatusBar))

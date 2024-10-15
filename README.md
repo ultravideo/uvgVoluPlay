@@ -29,13 +29,37 @@ To build this project from source, you'll need to have vcpkg installed and added
 After following these steps, you should be able to build the project successfully.
 
 4. Build project:
-   - Run this command:
+   1. Install deps:
+   - For Linux: run this before generating cmake files
+      ```
+      sudo apt install libglu1-mesa-dev
+      ```
+   - For Mac: run this before generating cmake files
+      ```
+      brew install pkg-config
+      ```
+   2. Build
+   - Create folder build
+      ```
+      mkdir build
+      cd build
+      ```
+
+   - Run this command: Change "default" to Linux/Mac - depends on your system.
      ```
-     cmake --preset=default
+     cmake .. --preset=default
      ```
+
    - After create cmake file successfully, there is a build folder, go ther and run:
      ```
      cmake --build . --config Release --parallel
      ```
+   
+   - Run:
+     ```
+     ./uvgVisualzier
+     ```
+
+   **Note: If there are any issue related to rendering in OpenGL, check if there is a folder named as "shaders" at the same place with the visualizer. (Copy it if needed) 
 
 

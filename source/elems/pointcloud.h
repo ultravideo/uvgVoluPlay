@@ -10,7 +10,6 @@
 #include <cmath>
 #include <unordered_map>
 #include <queue>
-#include <omp.h>
 #include <memory>
 #include <cstdlib>
 #include <string>
@@ -27,8 +26,8 @@ namespace nelems
 	class GLPointCloud
 	{
 	private:
-		bool GLPointCloud::HasPoints() const;
-		bool GLPointCloud::IsEmpty() const;
+		bool HasPoints() const;
+		bool IsEmpty() const;
 
 		size_t mSize = 0;
 		std::shared_ptr<std::vector<glm::vec3>> positions = std::make_shared<std::vector<glm::vec3>>();

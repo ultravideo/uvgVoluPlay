@@ -17,16 +17,12 @@ namespace nwindow
     mRenderCtx->init(this);
 
     mUICtx->init(this);
-
+std::cout << "??Crash here"<< std::endl;
     std::shared_ptr<SceneView> mSceneView = std::make_shared<SceneView>();
     mSceneView_Container->push_back(mSceneView);
-
+std::cout << "21321"<< std::endl;
     mPCLPropertyPanel = std::make_unique<PCL_Property_Panel>();
     mPCLPropertyPanel->set_scene_view_container(mSceneView_Container);
-
-    // mStatPanel = std::make_unique<Stat_Panel>();
-
-    //mPropertyPanel = std::make_unique<Property_Panel>();
 
     return mIsRunning;
   }

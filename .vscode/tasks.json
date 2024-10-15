@@ -55,8 +55,8 @@
                 "--config",
                 "release",
                 "--parallel",
-                "--target",
-                "install"
+                // "--target",
+                // "install"
             ],
             "problemMatcher": [],
             "options": {

@@ -76,8 +76,11 @@ namespace nrender
 
   bool OpenGL_Context::init(nwindow::IWindow* window)
   {
-    __super::init(window);
-
+    RenderContext::init(window);
+#ifdef __APPLE__
+    glfwInitHint(GLFW_COCOA_CHDIR_RESOURCES, GLFW_FALSE);
+    glfwInitHint(GLFW_COCOA_MENUBAR, GLFW_FALSE);
+#endif
     /* Initialize the library */
     if (!glfwInit())
     {
@@ -85,9 +88,15 @@ namespace nrender
       return false;
     }
     
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#else
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-
+#endif
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true); 
 
     // Create the window and store this window as window pointer
@@ -120,7 +129,9 @@ namespace nrender
 
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS); 
+#ifndef __APPLE__
     glDebugMessageCallback(glDebugOutput, nullptr);
+#endif
 
     return true;
   }

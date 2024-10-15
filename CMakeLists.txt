@@ -8,17 +8,25 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 option(GLIBCXX_USE_CXX11_ABI "Set -D_GLIBCXX_USE_CXX11_ABI=1" OFF)
 option(STATIC_WINDOWS_RUNTIME "Use static (MT/MTd) Windows runtime" OFF)
 
-if(STATIC_WINDOWS_RUNTIME)
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Release>")
-else()
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Release>DLL")
+
+if (WIN32)
+    if(STATIC_WINDOWS_RUNTIME)
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Release>")
+    else()
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Release>DLL")
+    endif()
 endif()
+
 if(UNIX)
     set_property(SOURCE ${SOURCES} APPEND_STRING PROPERTY COMPILE_FLAGS " -march=native")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -pthread")
+endif()
+
+if(APPLE)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -pthread")
 endif()
 
 set(CMAKE_CXX_FLAGS_RELEASE_INIT "-Wall")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -pthread")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")  # Use -O3 for higher optimization
 
 # Set build type to Release by default
@@ -57,7 +65,6 @@ set(Headers
     "source/render/ui_context.h"
     "source/shader/shader_util.h"
     "source/ui/control_panel.h"
-    "source/ui/property_panel.h"
     "source/ui/scene_view.h"
     "source/utils/imgui_widgets.h"
     "source/utils/str_utils.h"
@@ -90,7 +97,6 @@ set(Sources
     "source/render/ui_context.cpp"
     "source/shader/shader_util.cpp"
     "source/ui/control_panel.cpp"
-    "source/ui/property_panel.cpp"
     "source/ui/scene_view.cpp"
     "source/window/gl_window.cpp"
     "source/utils/log.cpp"
@@ -118,70 +124,40 @@ set(ROOT_NAMESPACE uvg_Visualizer)
 ################################################################################
 # Include directories
 ################################################################################
-if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-    target_include_directories(${PROJECT_NAME} PUBLIC
-        "${CMAKE_CURRENT_SOURCE_DIR}/source;"
-        "${CMAKE_CURRENT_SOURCE_DIR}/include;"
-        "${CMAKE_CURRENT_SOURCE_DIR}/source/3rdparty/imgui-docking;"
-        "${CMAKE_CURRENT_SOURCE_DIR}/source/3rdparty/imgui-docking/backends;"
-        "${CMAKE_CURRENT_SOURCE_DIR}/source/3rdparty/plugins/imgui"
-    )
-    # Include nlohmann_json headers
-    # target_include_directories(${PROJECT_NAME} PRIVATE ${NLOHMANN_JSON_INSTALL_DIR}/include)
-    list(APPEND CMAKE_PREFIX_PATH "./vcpkg_installed/x64-windows/share/cppzmq")
-    list(APPEND CMAKE_PREFIX_PATH "./vcpkg_installed/x64-windows/share/zeromq")
 
-    find_package(cppzmq CONFIG REQUIRED)
-    target_link_libraries(${PROJECT_NAME} PRIVATE cppzmq cppzmq-static)
+target_include_directories(${PROJECT_NAME} PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}/source;"
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/3rdparty/imgui-docking;"
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/3rdparty/imgui-docking/backends;"
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/3rdparty/plugins/imgui"
+)
 
-    if (OPENMP_FOUND)
-        target_link_libraries(${PROJECT_NAME} OpenMP::OpenMP_CXX)
-    endif()
+find_package(cppzmq CONFIG REQUIRED)
+find_package(GLEW REQUIRED)
+find_package(glfw3 CONFIG REQUIRED)
+find_package(glm CONFIG REQUIRED)
+find_package(imgui CONFIG REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE   cppzmq 
+                                                cppzmq-static
+                                                glfw
+                                                glm::glm-header-only
+                                                GLEW::GLEW
+                                                imgui::imgui
+)
 
-    find_package(OpenCL REQUIRED)
-    target_link_libraries(${PROJECT_NAME} PRIVATE ${OpenCL_LIBRARIES})
-    target_include_directories(${PROJECT_NAME} PRIVATE ${OpenCL_INCLUDE_DIRS})
-
+if (OPENMP_FOUND)
+    target_link_libraries(${PROJECT_NAME} OpenMP::OpenMP_CXX)
 endif()
 
-################################################################################
-# Compile definitions
-################################################################################
-if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        "GLEW_STATIC;"
-        "_MBCS"
-    )
-elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        "_MBCS"
-    )
-endif()
+message(STATUS "Added 3rd party libraries")
 
-################################################################################
-# Dependencies
-################################################################################
-if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-    set(ADDITIONAL_LIBRARY_DEPENDENCIES
-        "glfw3;"
-        "glew32s;"
-        "opengl32"
-    )
-endif()
-
-target_link_libraries(${PROJECT_NAME} PRIVATE "${ADDITIONAL_LIBRARY_DEPENDENCIES}")
-# target_link_libraries(${PROJECT_NAME} PRIVATE k4a::k4a)
-
-if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-    target_link_directories(${PROJECT_NAME} PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}//libs/gl;"
-        "${CMAKE_CURRENT_SOURCE_DIR}//libs/glfw"
-    )
-endif()
 
 # Define installation destinations
-set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/build/bin" CACHE PATH "Install path prefix" FORCE)
-set(INSTALL_CONFIG_DIR "Release")
+# set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/build/bin" CACHE PATH "Install path prefix" FORCE)
+# set(INSTALL_CONFIG_DIR "Release")
 
-install(DIRECTORY ${CMAKE_BINARY_DIR}/${INSTALL_CONFIG_DIR}/ DESTINATION ${CMAKE_INSTALL_PREFIX})
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/shaders DESTINATION ${CMAKE_INSTALL_PREFIX})
+# install(DIRECTORY ${CMAKE_BINARY_DIR}/${INSTALL_CONFIG_DIR}/ DESTINATION ${CMAKE_INSTALL_PREFIX})
+# install(DIRECTORY ${CMAKE_SOURCE_DIR}/shaders DESTINATION ${CMAKE_INSTALL_PREFIX})
+
+# Copy the shaders to the build directory
+file(COPY ${CMAKE_SOURCE_DIR}/shaders DESTINATION ${CMAKE_BINARY_DIR})
