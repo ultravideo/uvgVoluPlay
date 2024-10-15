@@ -23,6 +23,7 @@ namespace nui
         std::string get_serialNumber(int index);
         void post_handle();
         void scene_view_start(nui::SceneView* scene_view);
+        void start_button_handle();
 
         struct UI_config {
             //Same line

@@ -19,10 +19,14 @@ endif()
 
 if(UNIX)
     set_property(SOURCE ${SOURCES} APPEND_STRING PROPERTY COMPILE_FLAGS " -march=native")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -pthread")
+endif()
+
+if(APPLE)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -pthread")
 endif()
 
 set(CMAKE_CXX_FLAGS_RELEASE_INIT "-Wall")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -pthread")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")  # Use -O3 for higher optimization
 
 # Set build type to Release by default
@@ -120,33 +124,33 @@ set(ROOT_NAMESPACE uvg_Visualizer)
 ################################################################################
 # Include directories
 ################################################################################
-# if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-    target_include_directories(${PROJECT_NAME} PUBLIC
-        "${CMAKE_CURRENT_SOURCE_DIR}/source;"
-        "${CMAKE_CURRENT_SOURCE_DIR}/source/3rdparty/imgui-docking;"
-        "${CMAKE_CURRENT_SOURCE_DIR}/source/3rdparty/imgui-docking/backends;"
-        "${CMAKE_CURRENT_SOURCE_DIR}/source/3rdparty/plugins/imgui"
-    )
 
-    find_package(cppzmq CONFIG REQUIRED)
-    find_package(GLEW REQUIRED)
-    find_package(glfw3 CONFIG REQUIRED)
-    find_package(glm CONFIG REQUIRED)
-    find_package(imgui CONFIG REQUIRED)
-    target_link_libraries(${PROJECT_NAME} PRIVATE   cppzmq 
-                                                    cppzmq-static
-                                                    glfw
-                                                    glm::glm-header-only
-                                                    GLEW::GLEW
-                                                    imgui::imgui
-    )
+target_include_directories(${PROJECT_NAME} PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}/source;"
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/3rdparty/imgui-docking;"
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/3rdparty/imgui-docking/backends;"
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/3rdparty/plugins/imgui"
+)
 
-    if (OPENMP_FOUND)
-        target_link_libraries(${PROJECT_NAME} OpenMP::OpenMP_CXX)
-    endif()
+find_package(cppzmq CONFIG REQUIRED)
+find_package(GLEW REQUIRED)
+find_package(glfw3 CONFIG REQUIRED)
+find_package(glm CONFIG REQUIRED)
+find_package(imgui CONFIG REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE   cppzmq 
+                                                cppzmq-static
+                                                glfw
+                                                glm::glm-header-only
+                                                GLEW::GLEW
+                                                imgui::imgui
+)
 
-    message(STATUS "Added 3rd party libraries")
-# endif()
+if (OPENMP_FOUND)
+    target_link_libraries(${PROJECT_NAME} OpenMP::OpenMP_CXX)
+endif()
+
+message(STATUS "Added 3rd party libraries")
+
 
 # Define installation destinations
 # set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/build/bin" CACHE PATH "Install path prefix" FORCE)

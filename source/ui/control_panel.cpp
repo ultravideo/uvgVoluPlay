@@ -49,21 +49,29 @@ namespace nui
                 ImGui::AlignTextToFramePadding();
                 ImGui::BulletText("Select Scene");
                 ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
-                if (ImGui::BeginCombo("##inputlist_scenelist", mSceneView_Names.at(selected_scene_index).first.c_str())) // The ##combo is a unique identifier
+
+                if (mSceneView_Container->size() > 0)
                 {
-                    for (size_t i = 0; i < mSceneView_Container->size(); i++)
+                    if (ImGui::BeginCombo("##inputlist_scenelist", mSceneView_Names.at(selected_scene_index).first.c_str())) // The ##combo is a unique identifier
                     {
-                        bool isSelected = (selected_scene_index == i);
-                        if (ImGui::Selectable(mSceneView_Names.at(i).first.c_str(), isSelected))
+                        for (size_t i = 0; i < mSceneView_Container->size(); i++)
                         {
-                            selected_scene_index = i;
+                            bool isSelected = (selected_scene_index == i);
+                            if (ImGui::Selectable(mSceneView_Names.at(i).first.c_str(), isSelected))
+                            {
+                                selected_scene_index = i;
+                            }
+                            if (isSelected)
+                            {
+                                ImGui::SetItemDefaultFocus();
+                            }
                         }
-                        if (isSelected)
-                        {
-                            ImGui::SetItemDefaultFocus();
-                        }
+                        ImGui::EndCombo();
                     }
-                    ImGui::EndCombo();
+                } else {
+                    if (ImGui::BeginCombo("##inputlist_scenelist", "No Scene Available")) {
+                        ImGui::EndCombo();
+                    }
                 }
 
                 ImGui::AlignTextToFramePadding();
@@ -83,15 +91,18 @@ namespace nui
                 ImGui::TableHeadersRow();
                 ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, IM_COL32(60, 136, 158, 255));
 
-                for (size_t i = 0; i < mSceneView_Container->size(); i++)
+                if (mSceneView_Container->size() > 0 && mSceneView_Names.size() > 0)
                 {
-                    ImGui::TableNextRow();
-                    ImGui::TableNextColumn();
-                    ImGui::Text(mSceneView_Names.at(i).first.c_str());
-                    ImGui::TableNextColumn();
-                    ImGui::Text(mSceneView_Names.at(i).second.c_str());
-                    ImGui::TableNextColumn();
-                    ImGui::Text("%d", mSceneView_Container->at(i)->get_total_frames());
+                    for (size_t i = 0; i < mSceneView_Container->size(); i++)
+                    {
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::Text(mSceneView_Names.at(i).first.c_str());
+                        ImGui::TableNextColumn();
+                        ImGui::Text(mSceneView_Names.at(i).second.c_str());
+                        ImGui::TableNextColumn();
+                        ImGui::Text("%d", mSceneView_Container->at(i)->get_total_frames());
+                    }
                 }
 
                 ImGui::EndTable();
@@ -121,49 +132,7 @@ namespace nui
 
             if (ImGui::Button("Start", ImVec2(100, 20)) && !StartButton_disable)
             {
-                bool all_scene_view_has_sequence = true;
-                if (selected_render_mode == 0) {
-                    for (auto& scene_view : mSceneView_Names)
-                    {
-                        if (scene_view.second.empty())
-                        {
-                            all_scene_view_has_sequence = false;
-                            utilities::Logger::log(utilities::LogLevel::ERROR, "Viewport Controller", "Please select folder of the sequence\n");
-                            break;
-                        }
-                    }
-                }
-                
-                if ((all_scene_view_has_sequence && selected_render_mode == 0) || (selected_render_mode == 1))
-                {
-                    if (mSceneView_Container->empty())
-                    {
-                        std::shared_ptr<nui::SceneView> new_scene_view = std::make_shared<nui::SceneView>();
-                        new_scene_view->set_scene_name("Scene " + std::to_string(mSceneView_Container->size()));
-                        mSceneView_Container->push_back(new_scene_view);
-                        mSceneView_Names.push_back(std::make_pair(new_scene_view->get_scene_name(), ""));
-                    }
-
-                    start_portal_falg = false;
-                    StartButton_disable = true;
-
-                    for (auto& scene_view : *mSceneView_Container)
-                    {
-                        if (selected_render_mode == 1) {
-                            scene_view->set_render_mode(selected_render_mode);
-                            scene_view->setup_socket(zmq_position_address, zmq_color_address);
-                        }
-                        scene_view->run();
-                    }
-
-                    utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Signal to start Portal\n");
-                } else {
-                    if (all_scene_view_has_sequence && selected_render_mode == 0) {
-                        utilities::Logger::log(utilities::LogLevel::ERROR, "Viewport Controller", "Please add at least 1 scene view\n");
-                    } else if (selected_render_mode == 1) {
-                        utilities::Logger::log(utilities::LogLevel::ERROR, "Viewport Controller", "Please add scene view before running\n");
-                    }
-                }
+                this->start_button_handle();
             }
 
             ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
@@ -181,6 +150,7 @@ namespace nui
                 }
 
                 mSceneView_Container->clear();
+                mSceneView_Names.clear();
 
                 StartButton_disable = false;
                 
@@ -195,11 +165,12 @@ namespace nui
                 ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
                 if (ImGui::Button("Add Views", ImVec2(100, 20)))
                 {
-                    if (selected_render_mode == 1) {
+                    if (selected_render_mode == 1 && mSceneView_Container->size() >= 1){
                         utilities::Logger::log(utilities::LogLevel::ERROR, "Viewport Controller", "ZMQ mode only support 1 scene view\n");
                     } else {
                         std::shared_ptr<nui::SceneView> new_scene_view = std::make_shared<nui::SceneView>();
                         new_scene_view->set_scene_name("Scene " + std::to_string(mSceneView_Container->size()));
+                        std::cout << "Size of scene view container: " << mSceneView_Container->size() <<  " + Size of scene view names: " << mSceneView_Names.size() << std::endl;
                         mSceneView_Container->push_back(new_scene_view);
                         mSceneView_Names.push_back(std::make_pair(new_scene_view->get_scene_name(), ""));
                     }
@@ -345,6 +316,69 @@ namespace nui
         }
     }
 
+    void PCL_Property_Panel::start_button_handle() {
+        bool all_scene_view_has_sequence = true;
+
+        for (auto& scene_view : *mSceneView_Container)
+        {
+            std::cout << "Scene " << scene_view->get_scene_name() << " has sequence path: " << mSceneView_Names.at(selected_scene_index).second << std::endl;
+        }
+
+        if (selected_render_mode == 0) {
+            if (mSceneView_Container->empty())
+            {
+                utilities::Logger::log(utilities::LogLevel::ERROR, "Viewport Controller", "Please add at least 1 scene view to render PLY sequnece.\n");
+                return;
+            }
+
+            for (auto& scene_view : mSceneView_Names)
+            {
+                if (scene_view.second.empty())
+                {
+                    std::cout << "Scene " << scene_view.first << " has no sequence path\n";
+                    all_scene_view_has_sequence = false;
+                    break;
+                }
+            }
+
+            if (all_scene_view_has_sequence) {
+                start_portal_falg = false;
+                StartButton_disable = true;
+
+                for (auto& scene_view : *mSceneView_Container)
+                {
+                    scene_view->run();
+                }
+            } else {
+                utilities::Logger::log(utilities::LogLevel::ERROR, "Viewport Controller", "Please select folder of the sequence\n");
+                return;
+            }
+        } else if (selected_render_mode == 1) {
+            if (mSceneView_Container->empty())
+            {
+                std::shared_ptr<nui::SceneView> new_scene_view = std::make_shared<nui::SceneView>();
+                new_scene_view->set_scene_name("Scene " + std::to_string(0));
+                mSceneView_Container->push_back(new_scene_view);
+                mSceneView_Names.push_back(std::make_pair(new_scene_view->get_scene_name(), ""));
+            }
+
+            start_portal_falg = false;
+            StartButton_disable = true;
+
+            for (auto& scene_view : *mSceneView_Container)
+            {
+                if (selected_render_mode == 1) {
+                    scene_view->set_render_mode(selected_render_mode);
+                    scene_view->setup_socket(zmq_position_address, zmq_color_address);
+                }
+                scene_view->run();
+            }
+
+        }
+
+        utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Signal to start Portal\n");
+    } 
+
     void PCL_Property_Panel::post_handle()
     {
         mPLYFileDialog.Display();
@@ -361,6 +395,7 @@ namespace nui
             {
                 if (mSceneView_Names.at(selected_scene_index).first == scene_view->get_scene_name())
                 {
+                    std::cout << "selected_scene_index: " << selected_scene_index << " " << scene_view->get_scene_name() << std::endl;
                     scene_view->set_render_mode(selected_render_mode);
                     scene_view->set_sequence_path(mCurrentPLYFolder);
                     std::string folder_name = mCurrentPLYFolder.substr(mCurrentPLYFolder.find_last_of("/\\") + 1);
