@@ -87,6 +87,7 @@ namespace nrender
       fprintf(stderr, "Error: GLFW Window couldn't be initialized\n");
       return false;
     }
+    
 #ifdef __APPLE__
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);

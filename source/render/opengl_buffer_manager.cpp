@@ -108,12 +108,17 @@ namespace nrender
 
     glGenFramebuffers(1, &mFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
-#ifdef __APPLE__
-    glGenTextures(GL_TEXTURE_2D, &mTexId);
-#else
-    glCreateTextures(GL_TEXTURE_2D, 1, &mTexId);
-#endif
-    glBindTexture(GL_TEXTURE_2D, mTexId);
+
+    // Platform-specific texture creation
+    #ifdef __APPLE__
+      // Use glGenTextures and glBindTexture on macOS
+      glGenTextures(1, &mTexId);
+      glBindTexture(GL_TEXTURE_2D, mTexId);
+    #else
+      // Use glCreateTextures on other platforms (Windows, Linux)
+      glCreateTextures(GL_TEXTURE_2D, 1, &mTexId);
+      glBindTexture(GL_TEXTURE_2D, mTexId);
+    #endif
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mWidth, mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -123,12 +128,17 @@ namespace nrender
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mTexId, 0);
 
-#ifdef __APPLE__
-    glGenTextures(GL_TEXTURE_2D, &mDepthId);
-#else
-    glCreateTextures(GL_TEXTURE_2D, 1, &mDepthId);
-#endif
-    glBindTexture(GL_TEXTURE_2D, mDepthId);
+    // Platform-specific depth buffer creation
+    #ifdef __APPLE__
+      // Use glGenTextures and glBindTexture on macOS
+      glGenTextures(1, &mDepthId);
+      glBindTexture(GL_TEXTURE_2D, mDepthId);
+    #else
+      // Use glCreateTextures on other platforms (Windows, Linux)
+      glCreateTextures(GL_TEXTURE_2D, 1, &mDepthId);
+      glBindTexture(GL_TEXTURE_2D, mDepthId);
+    #endif
+
     glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, mWidth, mHeight);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
