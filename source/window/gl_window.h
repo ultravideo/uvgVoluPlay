@@ -14,6 +14,8 @@
 #include "ui/control_panel.h"
 #include "ui/scene_view.h"
 
+#include "utils/threadqueue.hpp" 
+
 using namespace nui;
 using namespace nelems;
 using namespace nrender;
@@ -24,8 +26,8 @@ namespace nwindow
   class GLWindow : public IWindow
   {
   private:
-    std::shared_ptr<std::vector<std::shared_ptr<nui::SceneView>>> mSceneView_Container = std::make_shared<std::vector<std::shared_ptr<nui::SceneView>>>();
-    
+    bool is_minized();
+
   public:
 
     GLWindow() :
@@ -60,23 +62,22 @@ namespace nwindow
 
     bool is_running() { return mIsRunning; }
 
-
   private:
 
     GLFWwindow* mWindow;
 
     // Render contexts
     std::unique_ptr<UIContext> mUICtx;
-
     std::unique_ptr<OpenGL_Context> mRenderCtx;
 
     // UI components
-
     std::unique_ptr<PCL_Property_Panel> mPCLPropertyPanel;
-
     std::unique_ptr<SceneView> mSceneView_2;
 
-    bool mIsRunning;
+    // Backround worker context
+    bool mIsRunning = false;
+    std::shared_ptr<utilities::ThreadQueue> thread_queue = std::make_shared<utilities::ThreadQueue>(40);
+    std::shared_ptr<std::vector<std::shared_ptr<nui::SceneView>>> mSceneView_Container = std::make_shared<std::vector<std::shared_ptr<nui::SceneView>>>();
 
   };
 }

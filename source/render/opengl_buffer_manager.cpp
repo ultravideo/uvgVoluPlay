@@ -150,11 +150,13 @@ namespace nrender
   {
     if (mFBO)
     {
-      glDeleteFramebuffers(GL_FRAMEBUFFER, &mFBO);
+      std::cout << "Deleting FBO" << std::endl;
+      glDeleteFramebuffers(1, &mFBO);
       glDeleteTextures(1, &mTexId);
       glDeleteTextures(1, &mDepthId);
       mTexId = 0;
       mDepthId = 0;
+      mFBO = 0;
     }
 
   }
@@ -163,7 +165,6 @@ namespace nrender
   {
     glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
     glViewport(0, 0, mWidth, mHeight);
-    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glClearColor(background_color[0], background_color[1], background_color[2], background_color[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

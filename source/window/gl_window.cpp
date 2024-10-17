@@ -2,7 +2,6 @@
 
 #include "gl_window.h"
 #include "elems/input.h"
-
 #include "ply_import/miniply.h"
 #include "string"
 
@@ -49,8 +48,6 @@ namespace nwindow
 
   void GLWindow::on_scroll(double delta)
   {
-    // mSceneView->on_mouse_wheel(delta);
-
     for (auto& scene_view : *mSceneView_Container)
     {
       scene_view->on_mouse_wheel(delta);
@@ -61,6 +58,7 @@ namespace nwindow
   {
     if (action == GLFW_PRESS)
     {
+      
     }
   }
 
@@ -71,26 +69,29 @@ namespace nwindow
 
   void GLWindow::render()
   {
-    // Clear the view
+    // // Clear the view
     mRenderCtx->pre_render();
 
-    // Initialize UI components
+    // // Initialize UI components
     mUICtx->pre_render();
 
-    bool show_demo_window = true;
-    ImGui::ShowDemoWindow(&show_demo_window);
-
-    mPCLPropertyPanel->render();
-
-    for (auto& scene_view : *mSceneView_Container)
+    if (!is_minized())
     {
-      scene_view->render();
-    }
+      bool show_demo_window = true;
+      ImGui::ShowDemoWindow(&show_demo_window);
 
+      mPCLPropertyPanel->render();
+
+      for (auto& scene_view : *mSceneView_Container)
+      {
+        scene_view->render();
+      }
+    }
+    
     // Render the UI 
     mUICtx->post_render();
 
-    // Render end, swap buffers
+    // // Render end, swap buffers
     mRenderCtx->post_render();
 
     handle_input();
@@ -133,5 +134,18 @@ namespace nwindow
     {
       scene_view->on_mouse_move(x, y, Input::GetPressedButton(mWindow));
     }
+  }
+
+  bool GLWindow::is_minized()
+  {
+    // 
+    if (glfwGetWindowAttrib(mWindow, GLFW_ICONIFIED))
+    {
+      // Handle the window being minimized
+      // std::cout << "Window minimized" << std::endl;
+      return true;
+    } 
+    return false;
+
   }
 }

@@ -7,6 +7,11 @@ namespace nui
 {
     void SceneView::resize(int32_t width, int32_t height)
     {
+        if (width <= 0 || height <= 0)
+        {
+            return;
+        }
+
         mSize.x = width;
         mSize.y = height;
 
