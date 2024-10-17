@@ -21,6 +21,22 @@ namespace nui
     {
         ImGui::Begin("Controller");
         
+        this->main_control_handle();
+
+        ImGui::Separator();
+
+        this->view_control_handle();
+
+        ImGui::Separator();
+
+        this->scene_view_control_handle();
+
+        ImGui::End();
+
+        post_handle();
+    }
+
+    void PCL_Property_Panel::main_control_handle() {
         if (ImGui::CollapsingHeader("Main Control", ImGuiTreeNodeFlags_DefaultOpen))
         {
             ImGui::AlignTextToFramePadding();
@@ -139,26 +155,14 @@ namespace nui
 
             if (ImGui::Button("Stop", ImVec2(100, 20)) && StartButton_disable)
             {
-                for (auto& scene_view : *mSceneView_Container)
-                {
-                    scene_view->stop();
-                }
-                        
-                if (captureThread.joinable())
-                {
-                    captureThread.join();
-                }
-
-                mSceneView_Container->clear();
-                mSceneView_Names.clear();
-
-                StartButton_disable = false;
-                
-                utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Signal to stop Portal\n");
+                this->stop_button_handle();
             }
+        }
+    }
 
-            ImGui::Separator();
-            if (ImGui::CollapsingHeader("View Control", ImGuiTreeNodeFlags_DefaultOpen))
+    void PCL_Property_Panel::view_control_handle()
+    {
+        if (ImGui::CollapsingHeader("View Control", ImGuiTreeNodeFlags_DefaultOpen))
             {   
                 ImGui::AlignTextToFramePadding();
                 ImGui::BulletText("Number of Views: %d --- ", static_cast<int>(mSceneView_Container->size()));
@@ -186,10 +190,11 @@ namespace nui
 
                 ImGui::Text(" ");
             }
-        }
 
-        ImGui::Separator();
+    }
 
+    void PCL_Property_Panel::scene_view_control_handle() {
+        
         if (ImGui::CollapsingHeader("Scene Control", ImGuiTreeNodeFlags_DefaultOpen))
         {
             ImGui::BulletText("Set point size:");
@@ -299,10 +304,6 @@ namespace nui
                 }
             }
         }
-    
-        ImGui::End();
-
-        post_handle();
     }
 
     void PCL_Property_Panel::set_scene_view_container(std::shared_ptr<std::vector<std::shared_ptr<nui::SceneView>>> &scene_view_container)
@@ -372,6 +373,25 @@ namespace nui
         utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Signal to start Portal\n");
     } 
 
+    void PCL_Property_Panel::stop_button_handle() {
+        for (auto& scene_view : *mSceneView_Container)
+        {
+            scene_view->stop();
+        }
+                
+        if (captureThread.joinable())
+        {
+            captureThread.join();
+        }
+
+        mSceneView_Container->clear();
+        mSceneView_Names.clear();
+
+        StartButton_disable = false;
+        
+        utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Signal to stop Portal\n");
+    }
+
     void PCL_Property_Panel::post_handle()
     {
         mPLYFileDialog.Display();
@@ -404,11 +424,10 @@ namespace nui
         {
             mPLYFileDialog.Close();
 
-            // mPLYFileDialog.ClearSelected();
-
             for (auto& scene_view : *mSceneView_Container)
             {
                 // scene_view_start(scene_view.get()); 
+                // Cannot parallelize the scene_view_start due to the miniply library reading file corrupts when multiple threads are reading the same file
                 scene_view->receivePointCloud();
             }
             start_portal_falg = true;
@@ -422,9 +441,6 @@ namespace nui
 
     void PCL_Property_Panel::scene_view_start(nui::SceneView* scene_view)
     {
-        std::function<void()> loadGLPclFunction = [this, scene_view]() { scene_view->receivePointCloud(); };
-
-        captureThread = std::thread(loadGLPclFunction);
-        // std::thread([this, scene_view]() { scene_view->receivePointCloud(); });
+        captureThread = std::thread([this, scene_view]() { scene_view->receivePointCloud(); });
     }
 }

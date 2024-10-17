@@ -89,11 +89,7 @@ namespace nui
             if (*sequence_loaded && parse_new_pcl && (frame_sequence_idx < (pcl_vector->size())))
             {        
                 // Use mutex to avoid race condition
-                std::lock_guard<std::mutex> lock(frame_idx_mutex);            
-                // if (frame_sequence_idx == 0)
-                // {
-                //     set_focus_on_fisrt_frame(pcl_queue->front()->getPosition(0));
-                // }       
+                std::lock_guard<std::mutex> lock(frame_idx_mutex);                  
                 mMesh->parse_data(pcl_vector->at(frame_sequence_idx));
                 parse_new_pcl = false;
             }
