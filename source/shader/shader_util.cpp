@@ -37,23 +37,19 @@ namespace nshaders
 		std::ifstream is_fs(fragmentshader_file);
 		const std::string f_fs((std::istreambuf_iterator<char>(is_fs)), std::istreambuf_iterator<char>());
 
-std::cout << "Found Shared" << std::endl;
 		mProgramId = glCreateProgram();
-std::cout << "glCreateProgram Shared" << std::endl;
 		unsigned int vs = get_compiled_shader(GL_VERTEX_SHADER, f_vs);
 		unsigned int fs = get_compiled_shader(GL_FRAGMENT_SHADER, f_fs);
-std::cout << "get_compiled_shader Shared" << std::endl;
+
 		glAttachShader(mProgramId, vs);
 		glAttachShader(mProgramId, fs);
 
-std::cout << "glAttachShader Shared" << std::endl;
 		glLinkProgram(mProgramId);
 		glValidateProgram(mProgramId);
 
-std::cout << "glLinkProgram Shared" << std::endl;
 		glDeleteShader(vs);
 		glDeleteShader(fs);
-std::cout << "Loaded Shared" << std::endl;
+
 		return true;
 	}
 

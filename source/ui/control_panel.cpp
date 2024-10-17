@@ -97,9 +97,9 @@ namespace nui
                     {
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();
-                        ImGui::Text(mSceneView_Names.at(i).first.c_str());
+                        ImGui::Text("%s", mSceneView_Names.at(i).first.c_str());
                         ImGui::TableNextColumn();
-                        ImGui::Text(mSceneView_Names.at(i).second.c_str());
+                        ImGui::Text("%s", mSceneView_Names.at(i).second.c_str());
                         ImGui::TableNextColumn();
                         ImGui::Text("%d", mSceneView_Container->at(i)->get_total_frames());
                     }
@@ -161,7 +161,7 @@ namespace nui
             if (ImGui::CollapsingHeader("View Control", ImGuiTreeNodeFlags_DefaultOpen))
             {   
                 ImGui::AlignTextToFramePadding();
-                ImGui::BulletText("Number of Views: %d --- ", mSceneView_Container->size());
+                ImGui::BulletText("Number of Views: %d --- ", static_cast<int>(mSceneView_Container->size()));
                 ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
                 if (ImGui::Button("Add Views", ImVec2(100, 20)))
                 {
@@ -170,7 +170,6 @@ namespace nui
                     } else {
                         std::shared_ptr<nui::SceneView> new_scene_view = std::make_shared<nui::SceneView>();
                         new_scene_view->set_scene_name("Scene " + std::to_string(mSceneView_Container->size()));
-                        std::cout << "Size of scene view container: " << mSceneView_Container->size() <<  " + Size of scene view names: " << mSceneView_Names.size() << std::endl;
                         mSceneView_Container->push_back(new_scene_view);
                         mSceneView_Names.push_back(std::make_pair(new_scene_view->get_scene_name(), ""));
                     }
@@ -318,12 +317,7 @@ namespace nui
 
     void PCL_Property_Panel::start_button_handle() {
         bool all_scene_view_has_sequence = true;
-
-        for (auto& scene_view : *mSceneView_Container)
-        {
-            std::cout << "Scene " << scene_view->get_scene_name() << " has sequence path: " << mSceneView_Names.at(selected_scene_index).second << std::endl;
-        }
-
+        
         if (selected_render_mode == 0) {
             if (mSceneView_Container->empty())
             {
@@ -335,7 +329,6 @@ namespace nui
             {
                 if (scene_view.second.empty())
                 {
-                    std::cout << "Scene " << scene_view.first << " has no sequence path\n";
                     all_scene_view_has_sequence = false;
                     break;
                 }
@@ -395,7 +388,6 @@ namespace nui
             {
                 if (mSceneView_Names.at(selected_scene_index).first == scene_view->get_scene_name())
                 {
-                    std::cout << "selected_scene_index: " << selected_scene_index << " " << scene_view->get_scene_name() << std::endl;
                     scene_view->set_render_mode(selected_render_mode);
                     scene_view->set_sequence_path(mCurrentPLYFolder);
                     std::string folder_name = mCurrentPLYFolder.substr(mCurrentPLYFolder.find_last_of("/\\") + 1);

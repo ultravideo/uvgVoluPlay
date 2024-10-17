@@ -45,7 +45,7 @@ namespace nwindow
 
     void* get_native_window() override { return mWindow; }
 
-    void set_native_window(void* window)
+    void set_native_window(void* window) override
     {
       mWindow = (GLFWwindow*)window;
     }

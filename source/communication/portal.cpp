@@ -56,7 +56,7 @@ namespace Communication {
                     counter++;
                 }
                 else if (!colorRes && counter != 0) {
-                    std::cout << "Timeout: No message received." << std::endl;
+                    utilities::Logger::log(utilities::LogLevel::WARNING, "Portal", "Timeout: No message received.\n");                    
                     stop_signal();
                 }
 
@@ -83,7 +83,7 @@ namespace Communication {
                     zmq_handler->receive_message_cv.notify_one();
                 }
                 else if (!positionRes && counter != 0) {
-                    std::cout << "Timeout: No message received." << std::endl;
+                    utilities::Logger::log(utilities::LogLevel::WARNING, "Portal", "Timeout: No message received.\n");
                     stop_signal();
                 }
             }

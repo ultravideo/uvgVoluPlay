@@ -22,8 +22,6 @@ namespace nrender
       return;
     }
 
-    //start timer
-    // auto start = std::chrono::high_resolution_clock::now();
 
     // Calculate the total size needed for both position and attribute data
     size_t positionSize = (pointCloud->getPositionsVec().size()) * sizeof(glm::vec3);
@@ -39,8 +37,6 @@ namespace nrender
     // Specify the layout of the position data
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
-    // Unbind the VBO
-    // glBindBuffer(GL_ARRAY_BUFFER, 0); // Error here
 
    // Bind the VBO
     glBindBuffer(GL_ARRAY_BUFFER, mVBO_attributes_parse_id);
@@ -49,14 +45,9 @@ namespace nrender
     // Specify the layout of the attribute data
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)(0));
-    // Unbind the VCO
-    // glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glBindVertexArray(0);
 
-    // auto end = std::chrono::high_resolution_clock::now();
-    // std::chrono::duration<double> elapsed = end - start;
-    // std::cout << "Time taken to parse buffers: " << elapsed.count() << "s\n";
   }
 
   void OpenGL_VertexIndexBuffer::draw(int index_count)

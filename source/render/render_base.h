@@ -9,9 +9,12 @@ namespace nrender
   class VertexIndexBuffer
   {
   public:
+
     VertexIndexBuffer() : mVAO_parsing_id{ 0 }//, mIBO{ 0 }
     {
     }
+
+    virtual ~VertexIndexBuffer() {}
 
     /*virtual void create_buffers(const std::vector<nelems::VertexHolder>& vertices, const std::vector<unsigned int>& indices) = 0;*/
     virtual void create_buffers() = 0;

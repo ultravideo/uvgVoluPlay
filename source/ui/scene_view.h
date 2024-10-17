@@ -10,9 +10,9 @@
 #include "communication/portal.hpp"
 
 #include <thread> 
-#include <filesystem> // Include the filesystem library for C++17 or later
-#include <iostream>   // Include for std::cout (for demonstration)
-#include <vector>     // Include for std::vector (for collecting filenames)
+#include <filesystem> 
+#include <iostream>   
+#include <vector>     
 #include <mutex> 
 #include <condition_variable>
 #include "utils/log.hpp"
@@ -23,6 +23,7 @@ namespace nui
   {
     RENDER_SEQUENCE = 0,
     RENDER_ZMQ = 1,
+    
   };
 
   // Playback Components
@@ -43,12 +44,9 @@ namespace nui
     {
       mFrameBuffer = std::make_unique<nrender::OpenGL_FrameBuffer>();
       mFrameBuffer->create_buffers(800, 600);
-      std::cout << "Scene  init done" << std::endl;
       mShader = std::make_unique<nshaders::Shader>();
-      std::cout << "Shader  init done" << std::endl;
       mShader->load("shaders/vs.shader", "shaders/fr_nolight.shader");
       // mLight = std::make_unique<nelems::Light>();
-      std::cout << "Shader  setup done" << std::endl;
       mCamera = std::make_unique<nelems::Camera>(glm::vec3(-94, 272, -251), 45.0f, 1.3f, 0.1f, 2000.0f);
       // mCamera = std::make_unique<nelems::Camera>(glm::vec3(10, 100, 200), 45.0f, 1.3f, 0.1f, 2000.0f);
 
@@ -57,7 +55,6 @@ namespace nui
       }
       mMesh->init();
 
-      std::cout << "Scene  init done" << std::endl;
     }
 
     ~SceneView()
