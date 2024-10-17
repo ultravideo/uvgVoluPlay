@@ -62,44 +62,47 @@ namespace nui
             switch (selected_render_mode)
             {
             case 0:
-                ImGui::AlignTextToFramePadding();
-                ImGui::BulletText("Select Scene");
-                ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
+                // ImGui::AlignTextToFramePadding();
+                // ImGui::BulletText("Select Scene");
+                // ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
 
-                if (mSceneView_Container->size() > 0)
-                {
-                    if (ImGui::BeginCombo("##inputlist_scenelist", mSceneView_Names.at(selected_scene_index).first.c_str())) // The ##combo is a unique identifier
-                    {
-                        for (size_t i = 0; i < mSceneView_Container->size(); i++)
-                        {
-                            bool isSelected = (selected_scene_index == i);
-                            if (ImGui::Selectable(mSceneView_Names.at(i).first.c_str(), isSelected))
-                            {
-                                selected_scene_index = i;
-                            }
-                            if (isSelected)
-                            {
-                                ImGui::SetItemDefaultFocus();
-                            }
-                        }
-                        ImGui::EndCombo();
-                    }
-                } else {
-                    if (ImGui::BeginCombo("##inputlist_scenelist", "No Scene Available")) {
-                        ImGui::EndCombo();
-                    }
-                }
+                // if (mSceneView_Container->size() > 0)
+                // {
+                //     if (ImGui::BeginCombo("##inputlist_scenelist", mSceneView_Names.at(selected_scene_index).first.c_str())) // The ##combo is a unique identifier
+                //     {
+                //         for (size_t i = 0; i < mSceneView_Container->size(); i++)
+                //         {
+                //             bool isSelected = (selected_scene_index == i);
+                //             if (ImGui::Selectable(mSceneView_Names.at(i).first.c_str(), isSelected))
+                //             {
+                //                 selected_scene_index = i;
+                //             }
+                //             if (isSelected)
+                //             {
+                //                 ImGui::SetItemDefaultFocus();
+                //             }
+                //         }
+                //         ImGui::EndCombo();
+                //     }
+                // } else {
+                //     if (ImGui::BeginCombo("##inputlist_scenelist", "No Scene Available")) {
+                //         ImGui::EndCombo();
+                //     }
+                // }
 
                 ImGui::AlignTextToFramePadding();
                 ImGui::BulletText("Select sequence Folder: ");
-                ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
-                if (ImGui::Button("Open..."))
-                {
-                    mPLYFileDialog.Open();
-                }
+                // ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
 
-                ImGui::Separator();
+                // if (ImGui::Button("Open..."))
+                // {
+                //     mPLYFileDialog.Open();
+                // }
+
+                // ImGui::Separator();
+
                 ImGui::BulletText("Scenes Information:");
+                ImGui::Text("Note: Press respective scene to select sequence folder");
                 ImGui::BeginTable("##scene_table", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
                 ImGui::TableSetupColumn("Scene Name", ImGuiTableColumnFlags_WidthFixed, 100.0f);
                 ImGui::TableSetupColumn("Sequence Name", ImGuiTableColumnFlags_WidthStretch, 100.0f);
@@ -115,7 +118,14 @@ namespace nui
                         ImGui::TableNextColumn();
                         ImGui::Text("%s", mSceneView_Names.at(i).first.c_str());
                         ImGui::TableNextColumn();
-                        ImGui::Text("%s", mSceneView_Names.at(i).second.c_str());
+
+                        if (ImGui::Selectable(mSceneView_Names.at(i).second.c_str()))
+                        {
+                            mPLYFileDialog.Open();
+                            selected_scene_index = i;
+                            ImGui::Text("%s", mSceneView_Names.at(i).second.c_str());
+                        }
+                        
                         ImGui::TableNextColumn();
                         ImGui::Text("%d", mSceneView_Container->at(i)->get_total_frames());
                     }
@@ -328,6 +338,7 @@ namespace nui
 
             for (auto& scene_view : mSceneView_Names)
             {
+                // Verify the path to sequence folder is valid
                 if (scene_view.second.empty())
                 {
                     all_scene_view_has_sequence = false;
@@ -367,7 +378,6 @@ namespace nui
                 }
                 scene_view->run();
             }
-
         }
 
         utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Signal to start Portal\n");
@@ -411,8 +421,14 @@ namespace nui
                     scene_view->set_render_mode(selected_render_mode);
                     scene_view->set_sequence_path(mCurrentPLYFolder);
                     std::string folder_name = mCurrentPLYFolder.substr(mCurrentPLYFolder.find_last_of("/\\") + 1);
-                    mSceneView_Names.at(selected_scene_index).second = folder_name;
-                    utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Set sequence path to: " + mCurrentPLYFolder + " for " + scene_view->get_scene_name() + "\n");
+
+                    // Verify the folder is valid
+                    if (std::filesystem::exists(mCurrentPLYFolder) &&  std::filesystem::is_directory(mCurrentPLYFolder)) {
+                        mSceneView_Names.at(selected_scene_index).second = folder_name;
+                        utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Set sequence path to: " + mCurrentPLYFolder + " for " + scene_view->get_scene_name() + "\n");
+                    }  else {
+                        utilities::Logger::log(utilities::LogLevel::ERROR, "Viewport Controller", "Invalid folder path or folder is empty\n");
+                    }
                     break;  
                 }
             }
