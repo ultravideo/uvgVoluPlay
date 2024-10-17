@@ -159,6 +159,7 @@ namespace nui
 
     void SceneView::stop()
     {
+        mMesh = nullptr;
         switch (this->mRenderMode)
         {
         case RENDER_ZMQ:

@@ -64,7 +64,7 @@ namespace nui
         
         int current_frame = 0;
         int total_frames = 0;
-        float bg_color[3] = { 0.155f, 0.2f, 0.156f };
+        float bg_color[3] = { 1.0f, 1.0f, 1.0f };
 
         char zmq_position_address[64] = "tcp://*:5556";
         char zmq_color_address[64] = "tcp://*:5555";

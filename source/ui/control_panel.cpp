@@ -62,44 +62,8 @@ namespace nui
             switch (selected_render_mode)
             {
             case 0:
-                // ImGui::AlignTextToFramePadding();
-                // ImGui::BulletText("Select Scene");
-                // ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
-
-                // if (mSceneView_Container->size() > 0)
-                // {
-                //     if (ImGui::BeginCombo("##inputlist_scenelist", mSceneView_Names.at(selected_scene_index).first.c_str())) // The ##combo is a unique identifier
-                //     {
-                //         for (size_t i = 0; i < mSceneView_Container->size(); i++)
-                //         {
-                //             bool isSelected = (selected_scene_index == i);
-                //             if (ImGui::Selectable(mSceneView_Names.at(i).first.c_str(), isSelected))
-                //             {
-                //                 selected_scene_index = i;
-                //             }
-                //             if (isSelected)
-                //             {
-                //                 ImGui::SetItemDefaultFocus();
-                //             }
-                //         }
-                //         ImGui::EndCombo();
-                //     }
-                // } else {
-                //     if (ImGui::BeginCombo("##inputlist_scenelist", "No Scene Available")) {
-                //         ImGui::EndCombo();
-                //     }
-                // }
-
                 ImGui::AlignTextToFramePadding();
                 ImGui::BulletText("Select sequence Folder: ");
-                // ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
-
-                // if (ImGui::Button("Open..."))
-                // {
-                //     mPLYFileDialog.Open();
-                // }
-
-                // ImGui::Separator();
 
                 ImGui::BulletText("Scenes Information:");
                 ImGui::Text("Note: Press respective scene to select sequence folder");
@@ -193,17 +157,22 @@ namespace nui
                 ImGui::BulletText("Background Color:");
 
                 ImGui::ColorPicker3("Background Color", bg_color, ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_DisplayRGB);
+
                 for (auto& scene_view : *mSceneView_Container)
                 {
                     scene_view->set_background_color(bg_color[0], bg_color[1], bg_color[2]);
                 }
-
+                
                 ImGui::Text(" ");
             }
 
     }
 
     void PCL_Property_Panel::scene_view_control_handle() {
+        if (!StartButton_disable)
+        {
+            return;
+        }
         
         if (ImGui::CollapsingHeader("Scene Control", ImGuiTreeNodeFlags_DefaultOpen))
         {
@@ -234,6 +203,7 @@ namespace nui
                 }
             }
 
+
             for (auto& scene_view : *mSceneView_Container)
             {
                 if (scene_view->get_scene_name() == mSceneView_Names.at(selected_scene_index).first)
@@ -245,6 +215,7 @@ namespace nui
                     break;
                 }
             }
+
 
             ImGui::BulletText("Playback control:");
             // Backward and Forward buttons and play button
