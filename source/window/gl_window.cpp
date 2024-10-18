@@ -7,7 +7,7 @@
 
 namespace nwindow
 {
-  bool GLWindow::init(int width, int height, const std::string& title)
+  bool GLWindow::init(int width, int height, const std::string& title, std::shared_ptr<int> FPS, std::shared_ptr<bool> limited_frame_rate)
   {
     Width = width;
     Height = height;
@@ -20,7 +20,7 @@ namespace nwindow
     std::shared_ptr<SceneView> mSceneView = std::make_shared<SceneView>();
     mSceneView_Container->push_back(mSceneView);
 
-    mPCLPropertyPanel = std::make_unique<PCL_Property_Panel>();
+    mPCLPropertyPanel = std::make_unique<Control_Panel>(FPS, limited_frame_rate);
     mPCLPropertyPanel->set_scene_view_container(mSceneView_Container);
 
     return mIsRunning;
@@ -138,11 +138,8 @@ namespace nwindow
 
   bool GLWindow::is_minized()
   {
-    // 
     if (glfwGetWindowAttrib(mWindow, GLFW_ICONIFIED))
     {
-      // Handle the window being minimized
-      // std::cout << "Window minimized" << std::endl;
       return true;
     } 
     return false;

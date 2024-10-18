@@ -73,7 +73,7 @@ namespace nui
 
     void set_focus_on_fisrt_frame(glm::vec3 focus);
 
-    void reset_view() { mCamera->reset(); }
+    void reset_view();
 
     void receivePointCloud();
 

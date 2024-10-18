@@ -39,7 +39,7 @@ namespace nwindow
 
     ~GLWindow();
 
-    bool init(int width, int height, const std::string& title);
+    bool init(int width, int height, const std::string& title, std::shared_ptr<int> FPS, std::shared_ptr<bool> limited_frame_rate);
 
     void render();
 
@@ -71,7 +71,7 @@ namespace nwindow
     std::unique_ptr<OpenGL_Context> mRenderCtx;
 
     // UI components
-    std::unique_ptr<PCL_Property_Panel> mPCLPropertyPanel;
+    std::unique_ptr<Control_Panel> mPCLPropertyPanel;
     std::unique_ptr<SceneView> mSceneView_2;
 
     // Backround worker context

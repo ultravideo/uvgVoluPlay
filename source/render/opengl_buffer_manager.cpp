@@ -150,7 +150,6 @@ namespace nrender
   {
     if (mFBO)
     {
-      std::cout << "Deleting FBO" << std::endl;
       glDeleteFramebuffers(1, &mFBO);
       glDeleteTextures(1, &mTexId);
       glDeleteTextures(1, &mDepthId);

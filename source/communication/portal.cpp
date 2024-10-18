@@ -34,8 +34,8 @@ namespace Communication {
         colorSocket.bind(zmq_handler->color_address);
         positionSocket.bind(zmq_handler->position_address);
 
-        colorSocket.set(zmq::sockopt::rcvtimeo, 2000);
-        positionSocket.set(zmq::sockopt::rcvtimeo, 2000);
+        colorSocket.set(zmq::sockopt::rcvtimeo, 6000);
+        positionSocket.set(zmq::sockopt::rcvtimeo, 6000);
 
         std::mutex receive_message_mutex;
         int counter = 0;

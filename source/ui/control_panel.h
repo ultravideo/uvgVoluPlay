@@ -10,11 +10,11 @@
 
 namespace nui
 {
-    class PCL_Property_Panel
+    class Control_Panel
     {
     public:
-        PCL_Property_Panel();
-        ~PCL_Property_Panel();
+        Control_Panel(std::shared_ptr<int> _FPS, std::shared_ptr<bool> _limited_frame_rate);
+        ~Control_Panel();
 
         void render();
         void set_scene_view_container(std::shared_ptr<std::vector<std::shared_ptr<nui::SceneView>>> &scene_view_container);
@@ -50,7 +50,7 @@ namespace nui
         std::string mCurrentPLYFolder = "";
 
         //Control
-        float point_size = 1.0f;
+        float point_size = 3.0f;
         bool StartButton_disable = false;
 
         //Kinect devices
@@ -68,5 +68,8 @@ namespace nui
 
         char zmq_position_address[64] = "tcp://*:5556";
         char zmq_color_address[64] = "tcp://*:5555";
+
+        std::shared_ptr<int> mFPS = nullptr;
+        std::shared_ptr<bool> mlimited_frame_rate = nullptr;
     };
 }

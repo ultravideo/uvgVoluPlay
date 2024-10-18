@@ -4,20 +4,23 @@
 
 namespace nui
 {
-    PCL_Property_Panel::PCL_Property_Panel() {
+    Control_Panel::Control_Panel(std::shared_ptr<int> _FPS, std::shared_ptr<bool> _limited_frame_rate) {
         mCurrentPLYFile = "< ... >";
         mPLYFileDialog.SetTitle("Open PLY file");
         mPLYFileDialog.SetFileFilters({ ".ply" });
+
+        mFPS = _FPS;
+        mlimited_frame_rate = _limited_frame_rate;
     }
 
-    PCL_Property_Panel::~PCL_Property_Panel() {
+    Control_Panel::~Control_Panel() {
         if (captureThread.joinable())
         {
             captureThread.join();
         }
     }
 
-    void PCL_Property_Panel::render()
+    void Control_Panel::render()
     {
         ImGui::Begin("Controller");
         
@@ -36,7 +39,7 @@ namespace nui
         post_handle();
     }
 
-    void PCL_Property_Panel::main_control_handle() {
+    void Control_Panel::main_control_handle() {
         if (ImGui::CollapsingHeader("Main Control", ImGuiTreeNodeFlags_DefaultOpen))
         {
             ImGui::AlignTextToFramePadding();
@@ -66,7 +69,7 @@ namespace nui
                 ImGui::BulletText("Select sequence Folder: ");
 
                 ImGui::BulletText("Scenes Information:");
-                ImGui::Text("Note: Press respective scene to select sequence folder");
+                ImGui::Text("Note: Click respective scene to select folder");
                 ImGui::BeginTable("##scene_table", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
                 ImGui::TableSetupColumn("Scene Name", ImGuiTableColumnFlags_WidthFixed, 100.0f);
                 ImGui::TableSetupColumn("Sequence Name", ImGuiTableColumnFlags_WidthStretch, 100.0f);
@@ -134,7 +137,7 @@ namespace nui
         }
     }
 
-    void PCL_Property_Panel::view_control_handle()
+    void Control_Panel::view_control_handle()
     {
         if (ImGui::CollapsingHeader("View Control", ImGuiTreeNodeFlags_DefaultOpen))
             {   
@@ -168,14 +171,25 @@ namespace nui
 
     }
 
-    void PCL_Property_Panel::scene_view_control_handle() {
-        if (!StartButton_disable)
-        {
-            return;
-        }
+    void Control_Panel::scene_view_control_handle() {
         
         if (ImGui::CollapsingHeader("Scene Control", ImGuiTreeNodeFlags_DefaultOpen))
         {
+            ImGui::BulletText("Limit square Frame Rate:");
+            ImGui::Checkbox("Enable Frame Rate Limit", mlimited_frame_rate.get());
+            static int frame_rate = 60;
+            if (ImGui::SliderInt(" Frame Rate", &frame_rate, 5, 120) && *mlimited_frame_rate)
+            {
+                // Force the frame rate to be a multiple of 5
+                *mFPS = frame_rate;
+            }
+            frame_rate = ((frame_rate / 5) * 5 > 0) ? (frame_rate / 5) * 5 : 5;
+
+            if (!StartButton_disable)
+            {
+                return;
+            }
+
             ImGui::BulletText("Set point size:");
             if (ImGui::SliderFloat(" Size", &point_size, 1.0f, 10.0f)) {
                 for (auto& scene_view : *mSceneView_Container)
@@ -287,7 +301,7 @@ namespace nui
         }
     }
 
-    void PCL_Property_Panel::set_scene_view_container(std::shared_ptr<std::vector<std::shared_ptr<nui::SceneView>>> &scene_view_container)
+    void Control_Panel::set_scene_view_container(std::shared_ptr<std::vector<std::shared_ptr<nui::SceneView>>> &scene_view_container)
     {
         mSceneView_Container = scene_view_container;
 
@@ -297,7 +311,7 @@ namespace nui
         }
     }
 
-    void PCL_Property_Panel::start_button_handle() {
+    void Control_Panel::start_button_handle() {
         bool all_scene_view_has_sequence = true;
         
         if (selected_render_mode == 0) {
@@ -354,7 +368,7 @@ namespace nui
         utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Signal to start Portal\n");
     } 
 
-    void PCL_Property_Panel::stop_button_handle() {
+    void Control_Panel::stop_button_handle() {
         for (auto& scene_view : *mSceneView_Container)
         {
             scene_view->stop();
@@ -373,7 +387,7 @@ namespace nui
         utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Signal to stop Portal\n");
     }
 
-    void PCL_Property_Panel::post_handle()
+    void Control_Panel::post_handle()
     {
         mPLYFileDialog.Display();
         if (mPLYFileDialog.HasSelected() && selected_render_mode == 0)
@@ -426,7 +440,7 @@ namespace nui
         }
     }
 
-    void PCL_Property_Panel::scene_view_start(nui::SceneView* scene_view)
+    void Control_Panel::scene_view_start(nui::SceneView* scene_view)
     {
         captureThread = std::thread([this, scene_view]() { scene_view->receivePointCloud(); });
     }

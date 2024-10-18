@@ -269,4 +269,8 @@ namespace nui
             utilities::Logger::log(utilities::LogLevel::ERROR, "SceneView", "Portal is not initialized\n");
         }
     }
+
+    void SceneView::reset_view() { 
+      mCamera->reset(); 
+    }
 }
