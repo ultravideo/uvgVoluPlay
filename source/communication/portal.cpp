@@ -185,7 +185,7 @@ namespace Communication {
 
             pcl->Finallized();
             sequence_handler->pcl_vector->push_back(pcl);
-            utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Loaded  sequence_handler->pcl_vector size " + std::to_string(sequence_handler->pcl_vector->size()) + "\n");
+            // utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Loaded  sequence_handler->pcl_vector size " + std::to_string(sequence_handler->pcl_vector->size()) + "\n");
         } 
     }
 

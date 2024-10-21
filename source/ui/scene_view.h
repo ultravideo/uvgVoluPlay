@@ -123,7 +123,7 @@ namespace nui
     std::shared_ptr<Communication::Portal> mPortal = std::make_shared<Communication::Portal>();
 
     glm::vec2 mSize;
-    float mpointSize = 1.0f;
+    float mpointSize = 3.0f;
 
     bool parse_new_pcl = false;
     std::string scene_name = "Scene 0";

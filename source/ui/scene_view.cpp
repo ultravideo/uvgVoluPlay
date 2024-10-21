@@ -142,19 +142,22 @@ namespace nui
 
     void SceneView::receivePointCloud()
     {
-        if (mRenderMode == RENDER_ZMQ) {
-            frame_sequence_idx = 0;
-            mPortal->zmq_run();
-        } 
-        else if (mRenderMode == RENDER_SEQUENCE)
-        {
-            mPortal->sequence_run();
-            if (!pcl_vector->empty() && *sequence_loaded && frame_sequence_idx == (pcl_vector->size() - 1))
-            {
+            if (mRenderMode == RENDER_ZMQ) {
                 frame_sequence_idx = 0;
-                is_paused = true;
+                mPortal->zmq_run();
+            } 
+            else if (mRenderMode == RENDER_SEQUENCE)
+            {
+                std::thread([this]() {
+                    mPortal->sequence_run();
+                    if (!pcl_vector->empty() && *sequence_loaded && frame_sequence_idx == (pcl_vector->size() - 1))
+                    {
+                        frame_sequence_idx = 0;
+                        is_paused = true;
+                    }
+                        
+                }).detach();
             }
-        }
     }
 
     void SceneView::stop()
