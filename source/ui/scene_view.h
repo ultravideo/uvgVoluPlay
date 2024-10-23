@@ -103,6 +103,11 @@ namespace nui
 
     void set_background_color(float r, float g, float b);
 
+    void set_FPS(int fps) {
+        FPS = fps;
+        frameDuration = 1000 / FPS;
+    }
+
     void setup_socket(char * position_socket, char * color_socket);
 
   private:
@@ -134,6 +139,11 @@ namespace nui
     std::shared_ptr<bool> sequence_loaded = std::make_shared<bool>(false);
     std::mutex frame_idx_mutex;
     bool is_paused = false;
+
+    //Test
+    std::chrono::steady_clock::time_point frameStart = std::chrono::steady_clock::now();
+    int FPS = 25;
+    int frameDuration = 1000 / FPS;
   };
 }
 

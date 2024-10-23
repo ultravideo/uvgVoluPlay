@@ -106,9 +106,18 @@ namespace nui
             if (*sequence_loaded && (frame_sequence_idx < (pcl_vector->size() - 1)) && !is_paused)
             {
                 // Use mutex to avoid race condition
-                std::lock_guard<std::mutex> lock(frame_idx_mutex);
-                frame_sequence_idx++;
-                parse_new_pcl = true;
+                auto frameEnd = std::chrono::steady_clock::now();
+                std::chrono::duration<double, std::milli> elapsed = frameEnd - frameStart;
+                int remainingTime = frameDuration - static_cast<int>(elapsed.count());
+
+                if (remainingTime > 0) {
+                    
+                } else {
+                    std::lock_guard<std::mutex> lock(frame_idx_mutex);
+                    frame_sequence_idx++;
+                    parse_new_pcl = true;
+                    frameStart = std::chrono::steady_clock::now();
+                }
             } else if (*sequence_loaded && (frame_sequence_idx >= (pcl_vector->size() - 1)) && !is_paused) {
                 frame_sequence_idx = 0;
             }

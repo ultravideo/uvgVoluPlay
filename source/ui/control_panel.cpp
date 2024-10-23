@@ -181,7 +181,11 @@ namespace nui
             if (ImGui::SliderInt(" Frame Rate", &frame_rate, 5, 120) && *mlimited_frame_rate)
             {
                 // Force the frame rate to be a multiple of 5
-                *mFPS = frame_rate;
+                // *mFPS = frame_rate;
+                for (auto& scene_view : *mSceneView_Container)
+                {
+                    scene_view->set_FPS(frame_rate);
+                }
             }
             frame_rate = ((frame_rate / 5) * 5 > 0) ? (frame_rate / 5) * 5 : 5;
 
