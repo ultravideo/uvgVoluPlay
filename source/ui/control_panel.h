@@ -46,6 +46,7 @@ namespace nui
 
         // create a file browser instance
         ImGui::FileBrowser mPLYFileDialog;
+        ImGui::FileBrowser mJsonFileDialog;
         std::string mCurrentPLYFile;
         std::string mCurrentPLYFolder = "";
 

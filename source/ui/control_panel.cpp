@@ -8,6 +8,9 @@ namespace nui
         mCurrentPLYFile = "< ... >";
         mPLYFileDialog.SetTitle("Open PLY file");
         mPLYFileDialog.SetFileFilters({ ".ply" });
+
+        mJsonFileDialog.SetTitle("Open JSON config file");
+        mJsonFileDialog.SetFileFilters({ ".json" });
     }
 
     Control_Panel::~Control_Panel() {
@@ -63,7 +66,12 @@ namespace nui
             {
             case 0:
                 ImGui::AlignTextToFramePadding();
-                ImGui::BulletText("Select sequence Folder: ");
+                ImGui::BulletText("Load preset configuration: ");
+                ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
+                if (ImGui::Button("Load", ImVec2(100, 20)))
+                {
+                    mJsonFileDialog.Open();
+                }
 
                 ImGui::BulletText("Scenes Information:");
                 ImGui::Text("Note: Click respective scene to select folder");
@@ -394,6 +402,7 @@ namespace nui
     void Control_Panel::post_handle()
     {
         mPLYFileDialog.Display();
+        mJsonFileDialog.Display();
         if (mPLYFileDialog.HasSelected() && selected_render_mode == 0)
         {
             auto file_path = mPLYFileDialog.GetSelected().string();

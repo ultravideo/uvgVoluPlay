@@ -5,6 +5,7 @@
     "imgui",
     "glfw3",	
     "glew",
-    "glm"
+    "glm",
+    "nlohmann-json"
   ]
 }
