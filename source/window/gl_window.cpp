@@ -7,7 +7,7 @@
 
 namespace nwindow
 {
-  bool GLWindow::init(int width, int height, const std::string& title, std::shared_ptr<int> FPS, std::shared_ptr<bool> limited_frame_rate)
+  bool GLWindow::init(int width, int height, const std::string& title)
   {
     Width = width;
     Height = height;
@@ -20,7 +20,7 @@ namespace nwindow
     std::shared_ptr<SceneView> mSceneView = std::make_shared<SceneView>();
     mSceneView_Container->push_back(mSceneView);
 
-    mPCLPropertyPanel = std::make_unique<Control_Panel>(FPS, limited_frame_rate);
+    mPCLPropertyPanel = std::make_unique<Control_Panel>();
     mPCLPropertyPanel->set_scene_view_container(mSceneView_Container);
 
     return mIsRunning;

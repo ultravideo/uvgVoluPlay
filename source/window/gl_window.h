@@ -39,7 +39,7 @@ namespace nwindow
 
     ~GLWindow();
 
-    bool init(int width, int height, const std::string& title, std::shared_ptr<int> FPS, std::shared_ptr<bool> limited_frame_rate);
+    bool init(int width, int height, const std::string& title);
 
     void render();
 

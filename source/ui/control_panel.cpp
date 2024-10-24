@@ -4,13 +4,10 @@
 
 namespace nui
 {
-    Control_Panel::Control_Panel(std::shared_ptr<int> _FPS, std::shared_ptr<bool> _limited_frame_rate) {
+    Control_Panel::Control_Panel() {
         mCurrentPLYFile = "< ... >";
         mPLYFileDialog.SetTitle("Open PLY file");
         mPLYFileDialog.SetFileFilters({ ".ply" });
-
-        mFPS = _FPS;
-        mlimited_frame_rate = _limited_frame_rate;
     }
 
     Control_Panel::~Control_Panel() {
@@ -180,11 +177,14 @@ namespace nui
             static int frame_rate = 60;
             if (ImGui::SliderInt(" Frame Rate", &frame_rate, 5, 120) && *mlimited_frame_rate)
             {
-                // Force the frame rate to be a multiple of 5
-                // *mFPS = frame_rate;
                 for (auto& scene_view : *mSceneView_Container)
                 {
                     scene_view->set_FPS(frame_rate);
+                }
+            } else if (!*mlimited_frame_rate) {
+                for (auto& scene_view : *mSceneView_Container)
+                {
+                    scene_view->set_FPS(1000);
                 }
             }
             frame_rate = ((frame_rate / 5) * 5 > 0) ? (frame_rate / 5) * 5 : 5;

@@ -123,7 +123,6 @@ namespace nui
     std::shared_ptr<nelems::Mesh> mMesh = nullptr;
 
     std::shared_ptr<std::vector<std::shared_ptr<nelems::GLPointCloud>>> pcl_vector = std::make_shared<std::vector<std::shared_ptr<nelems::GLPointCloud>>>();
-    std::shared_ptr<std::queue<std::shared_ptr<nelems::Mesh>>> mesh_queue = std::make_shared<std::queue<std::shared_ptr<nelems::Mesh>>>();
     std::shared_ptr<std::queue<std::shared_ptr<nelems::GLPointCloud>>> pcl_queue = std::make_shared<std::queue<std::shared_ptr<nelems::GLPointCloud>>>();
     std::shared_ptr<Communication::Portal> mPortal = std::make_shared<Communication::Portal>();
 

@@ -13,7 +13,7 @@ namespace nui
     class Control_Panel
     {
     public:
-        Control_Panel(std::shared_ptr<int> _FPS, std::shared_ptr<bool> _limited_frame_rate);
+        Control_Panel();
         ~Control_Panel();
 
         void render();
@@ -69,7 +69,7 @@ namespace nui
         char zmq_position_address[64] = "tcp://*:5556";
         char zmq_color_address[64] = "tcp://*:5555";
 
-        std::shared_ptr<int> mFPS = nullptr;
-        std::shared_ptr<bool> mlimited_frame_rate = nullptr;
+        std::shared_ptr<int> mFPS = std::make_shared<int>(60);
+        std::shared_ptr<bool> mlimited_frame_rate = std::make_shared<bool>(false);
     };
 }
