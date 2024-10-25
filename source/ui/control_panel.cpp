@@ -393,22 +393,101 @@ namespace nui
 
         mSceneView_Container->clear();
         mSceneView_Names.clear();
+        scenes_config.clear();
 
         StartButton_disable = false;
         
         utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Signal to stop Portal\n");
     }
 
+    void Control_Panel::json_config_handle(std::string config_path)
+    {
+        if (!std::filesystem::exists(config_path))
+        {
+            utilities::Logger::log(utilities::LogLevel::ERROR, "INIT", "Config file does not exist\n");
+        }
+
+        scenes_config.clear();
+        mSceneView_Container->clear();
+        mSceneView_Names.clear();
+        
+        std::ifstream file(config_path);
+        nlohmann::json config = nlohmann::json::parse(file);
+
+
+        if (config.contains("scenes") && config["scenes"].is_array())
+        {
+            for (const auto& scene_json : config["scenes"])
+            {
+                // Ensure each scene has "Name" and "Sequence"
+                if (scene_json.contains("Name") && scene_json.contains("Sequence") && scene_json["Sequence"].is_array())
+                {
+                    Scene_Config scene;
+                    scene.Name = scene_json["Name"].get<std::string>();
+                    scene.Sequence = scene_json["Sequence"].get<std::vector<std::string>>();
+                    // Confirm scene.Sequence is a folder   
+                    for (const auto& path : scene.Sequence)
+                    {
+                        if (!std::filesystem::exists(path) || !std::filesystem::is_directory(path))
+                        {
+                            utilities::Logger::log(utilities::LogLevel::ERROR, "INIT", "Invalid folder path\n");
+                            return;
+                        }
+                    }
+                    scenes_config.push_back(scene);
+                }
+                else
+                {
+                    utilities::Logger::log(utilities::LogLevel::ERROR, "INIT", "Invalid scene format\n");
+                }
+            }
+            
+            mSceneView_Container->clear();
+            mSceneView_Names.clear();
+
+            // Output each scene's information
+            for (const auto& scene : scenes_config)
+            {   
+                std::shared_ptr<nui::SceneView> new_scene_view = std::make_shared<nui::SceneView>();
+                new_scene_view->set_scene_name(scene.Name);
+                new_scene_view->set_render_mode(selected_render_mode);
+
+                for (const auto& path : scene.Sequence)
+                {
+                    std::cout << "  Sequence path: " << path << std::endl;
+                    new_scene_view->set_sequence_path(path);
+                }
+
+                mSceneView_Container->push_back(new_scene_view);
+                mSceneView_Names.push_back(std::make_pair(new_scene_view->get_scene_name(), std::to_string(scene.Sequence.size()) + " sequence(s)"));
+            }
+        }
+        else
+        {
+            utilities::Logger::log(utilities::LogLevel::ERROR, "INIT", "Scenes array is missing or invalid\n");
+        }
+    }
+
     void Control_Panel::post_handle()
     {
         mPLYFileDialog.Display();
         mJsonFileDialog.Display();
+
+        if (mJsonFileDialog.HasSelected() && selected_render_mode == 0)
+        {
+            auto config_path = mJsonFileDialog.GetSelected().string();
+            mJsonFileDialog.ClearSelected();
+
+            // Check if the file exists
+            json_config_handle(config_path);
+        }
+
         if (mPLYFileDialog.HasSelected() && selected_render_mode == 0)
         {
-            auto file_path = mPLYFileDialog.GetSelected().string();
+            jsonfile_path = mPLYFileDialog.GetSelected().string();
 
             // Extract the directory path containing the file
-            std::filesystem::path directory_path = std::filesystem::path(file_path).parent_path();
+            std::filesystem::path directory_path = std::filesystem::path(jsonfile_path).parent_path();
 
             // Convert std::filesystem::path to const char*
             mCurrentPLYFolder = directory_path.string();

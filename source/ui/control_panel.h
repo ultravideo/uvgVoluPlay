@@ -8,8 +8,15 @@
 #include "utils/imgui_widgets.h"
 #include "3rdparty/plugins/imgui/ImFileBrowser.h"
 
+#include "nlohmann/json.hpp"
+
 namespace nui
 {
+    struct Scene_Config {
+        std::string Name;
+        std::vector<std::string> Sequence;
+    };
+
     class Control_Panel
     {
     public:
@@ -28,6 +35,7 @@ namespace nui
         void scene_view_control_handle();
         void start_button_handle();
         void stop_button_handle();
+        void json_config_handle(std::string config_path);
 
         struct UI_config {
             //Same line
@@ -72,5 +80,8 @@ namespace nui
 
         std::shared_ptr<int> mFPS = std::make_shared<int>(60);
         std::shared_ptr<bool> mlimited_frame_rate = std::make_shared<bool>(false);
+
+        std::vector<Scene_Config> scenes_config;
+        std::string jsonfile_path = "";
     };
 }
