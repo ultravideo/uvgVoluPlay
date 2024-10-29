@@ -201,15 +201,12 @@ namespace Communication {
         }
         *sequence_handler->sequence_loaded = false;
 
-        // Go to the folder of the sequence and check if there are any files
-
-
         for (const auto folder_path : sequence_handler->sequence_paths) {
             if (!std::filesystem::exists(folder_path)) {
                 utilities::Logger::log(utilities::LogLevel::ERROR, "Portal", "Invalid folder path\n");
                 return;
             }
-            std::cout << "Folder path: " << folder_path << std::endl;
+
             std::vector<std::string> files;
             for (const auto & entry : std::filesystem::directory_iterator(folder_path)) {
                 files.push_back(entry.path().string());
@@ -219,7 +216,7 @@ namespace Communication {
             for (const auto & file : files) {
                 load_pointcloud(file);
             }
-
+            std::cout << "Loaded " << sequence_handler->pcl_vector->size() << " files\n";
         }
 
         // std::string folder_path = sequence_handler->sequence_paths;

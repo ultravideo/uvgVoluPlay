@@ -182,7 +182,7 @@ namespace nui
         {
             ImGui::BulletText("Limit square Frame Rate:");
             ImGui::Checkbox("Enable Frame Rate Limit", mlimited_frame_rate.get());
-            static int frame_rate = 60;
+
             if (ImGui::SliderInt(" Frame Rate", &frame_rate, 5, 120) && *mlimited_frame_rate)
             {
                 for (auto& scene_view : *mSceneView_Container)
@@ -219,6 +219,16 @@ namespace nui
                     break;
                 }
             }
+
+            ImGui::BulletText("Set repeat times:");
+            if (ImGui::SliderInt("Repeat Time", &repeat_time, 1, 10))
+            {
+                for (auto& scene_view : *mSceneView_Container)
+                {
+                    scene_view->set_repeat_time(repeat_time);
+                }
+            }
+
             
             if (ImGui::SliderInt("Current Frame", &current_frame, 0, total_frames))
             {
@@ -228,7 +238,6 @@ namespace nui
                     scene_view->set_pause(true);
                 }
             }
-
 
             for (auto& scene_view : *mSceneView_Container)
             {
@@ -410,7 +419,7 @@ namespace nui
         scenes_config.clear();
         mSceneView_Container->clear();
         mSceneView_Names.clear();
-        
+
         std::ifstream file(config_path);
         nlohmann::json config = nlohmann::json::parse(file);
 
@@ -425,6 +434,10 @@ namespace nui
                     Scene_Config scene;
                     scene.Name = scene_json["Name"].get<std::string>();
                     scene.Sequence = scene_json["Sequence"].get<std::vector<std::string>>();
+                    scene.Sequence_length = scene_json["Sequence_Length"].get<std::vector<int>>();
+                    if (scene_json.contains("Description")) {
+                        scene.Description = scene_json["Description"].get<std::string>();
+                    }
                     // Confirm scene.Sequence is a folder   
                     for (const auto& path : scene.Sequence)
                     {
@@ -451,10 +464,11 @@ namespace nui
                 std::shared_ptr<nui::SceneView> new_scene_view = std::make_shared<nui::SceneView>();
                 new_scene_view->set_scene_name(scene.Name);
                 new_scene_view->set_render_mode(selected_render_mode);
+                new_scene_view->reserve_sequence_length(scene.Sequence_length);
+                new_scene_view->set_description(scene.Description);
 
                 for (const auto& path : scene.Sequence)
                 {
-                    std::cout << "  Sequence path: " << path << std::endl;
                     new_scene_view->set_sequence_path(path);
                 }
 
@@ -465,6 +479,35 @@ namespace nui
         else
         {
             utilities::Logger::log(utilities::LogLevel::ERROR, "INIT", "Scenes array is missing or invalid\n");
+        }
+
+        if (config.contains("setting")) {
+            if (config["setting"].contains("FPS")) {
+                frame_rate = config["setting"]["FPS"].get<int>();
+                *mlimited_frame_rate = true;
+            }
+
+            if (config["setting"].contains("Point_size")) {
+                point_size = config["setting"]["Point_size"].get<float>();
+            }
+
+            if (config["setting"].contains("Background_color")) {
+                bg_color[0] = config["setting"]["Background_color"][0].get<float>();
+                bg_color[1] = config["setting"]["Background_color"][1].get<float>();
+                bg_color[2] = config["setting"]["Background_color"][2].get<float>();
+            }
+
+            if (config["setting"].contains("Repeat_times")) {
+                repeat_time = config["setting"]["Repeat_times"].get<int>();
+            }
+
+            for (auto& scene_view : *mSceneView_Container)
+            {
+                scene_view->set_FPS(frame_rate);
+                scene_view->set_pointSize(point_size);
+                scene_view->set_background_color(bg_color[0], bg_color[1], bg_color[2]);
+                scene_view->set_repeat_time(repeat_time);
+            }
         }
     }
 

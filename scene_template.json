@@ -1,0 +1,29 @@
+{
+
+    "setting": {
+        "FPS" : 30,
+        "Point_size" : 3.0,
+        "Background_color" : [0.565, 0.725, 0.725],
+        "Repeat_times" : 3
+    },
+    "scenes": [{
+        "Name" : "scene_1",
+        "Sequence" : [
+                      "C:/Users/Guillaume/workspace/Sequence/CasualSpin_Vox9",
+                      "C:/Users/Guillaume/workspace/Sequence/BlueSquat_vox9",
+                      "C:/Users/Guillaume/workspace/Sequence/Louis_sequence"
+        ],
+        "Sequence_Length" : [250, 250, 250],
+        "Description" : "Write something here to describe <1 2 3>"
+    },
+    {
+        "Name" : "scene_2",
+        "Sequence" : ["C:/Users/Guillaume/workspace/Sequence/BlueSquat_vox9",
+                      "C:/Users/Guillaume/workspace/Sequence/Louis_sequence",
+                      "C:/Users/Guillaume/workspace/Sequence/CasualSpin_Vox9"
+        ],
+        "Sequence_Length" : [250, 250, 250],
+        "Description" : "Write something? here to describe <3 2 1>"
+    }
+]
+}

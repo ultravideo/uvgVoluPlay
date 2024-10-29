@@ -23,45 +23,14 @@ namespace nui
   {
     RENDER_SEQUENCE = 0,
     RENDER_ZMQ = 1,
-    
   };
-
-  // Playback Components
-    enum PlaybackMode
-    {
-        PLAYING,
-        PAUSED,
-        STOPPED,
-        LOOPING
-    };
 
   class SceneView
   {
   public:
-    SceneView() : 
-      mCamera(nullptr), mFrameBuffer(nullptr), mShader(nullptr),
-      mLight(nullptr), mSize(800, 600)
-    {
-      mFrameBuffer = std::make_unique<nrender::OpenGL_FrameBuffer>();
-      mFrameBuffer->create_buffers(800, 600);
-      mShader = std::make_unique<nshaders::Shader>();
-      mShader->load("shaders/vs.shader", "shaders/fr_nolight.shader");
-      // mLight = std::make_unique<nelems::Light>();
-      mCamera = std::make_unique<nelems::Camera>(glm::vec3(-94, 272, -251), 45.0f, 1.3f, 0.1f, 2000.0f);
-      // mCamera = std::make_unique<nelems::Camera>(glm::vec3(10, 100, 200), 45.0f, 1.3f, 0.1f, 2000.0f);
+    SceneView();
 
-      if (!mMesh) {
-          mMesh = std::make_shared<nelems::Mesh>();
-      }
-      mMesh->init();
-
-    }
-
-    ~SceneView()
-    {
-      mShader->unload();
-      mFrameBuffer->delete_buffers();
-    }
+    ~SceneView();
 
     nelems::Light* get_light() { return mLight.get(); }
 
@@ -103,12 +72,15 @@ namespace nui
 
     void set_background_color(float r, float g, float b);
 
-    void set_FPS(int fps) {
-        FPS = fps;
-        frameDuration = 1000 / FPS;
-    }
+    void set_FPS(int fps);
+
+    void reserve_sequence_length(std::vector<int> _sequence_length);
 
     void setup_socket(char * position_socket, char * color_socket);
+
+    void set_repeat_time(int repeat_time);
+
+    void set_description(std::string _description);
 
   private:
     void render_zmq();
@@ -134,15 +106,21 @@ namespace nui
     std::shared_ptr<std::function<void()>> render_mode_ptr = nullptr;
 
     RenderMode mRenderMode = RENDER_SEQUENCE;
-    size_t frame_sequence_idx = 0;
+    size_t frame_idx = 0;
     std::shared_ptr<bool> sequence_loaded = std::make_shared<bool>(false);
     std::mutex frame_idx_mutex;
     bool is_paused = false;
 
-    //Test
     std::chrono::steady_clock::time_point frameStart = std::chrono::steady_clock::now();
     int FPS = 25;
     int frameDuration = 1000 / FPS;
+
+    int repeat_time = 3;
+    int temp_repeat_time = 0;
+    int curr_sequence_idx = 0;
+    std::vector<int> Sequence_length;
+
+    std::string description = "";
   };
 }
 

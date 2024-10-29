@@ -15,6 +15,8 @@ namespace nui
     struct Scene_Config {
         std::string Name;
         std::vector<std::string> Sequence;
+        std::vector<int> Sequence_length;
+        std::string Description = "";
     };
 
     class Control_Panel
@@ -49,7 +51,7 @@ namespace nui
 
         //Drop down setup
         bool showDropdown = false;
-        int selected_render_mode = 1; // Index of the selected item
+        int selected_render_mode = 0; // Index of the selected item
         const char* render_mode_items[2] = { "Folder Sequence", "ZMQ sender" }; // Example items
 
         // create a file browser instance
@@ -62,6 +64,8 @@ namespace nui
         float point_size = 3.0f;
         bool StartButton_disable = false;
 
+        int repeat_time = 3;
+        int frame_rate = 60;
         //Kinect devices
         std::thread captureThread;
         bool stopServer = false;
