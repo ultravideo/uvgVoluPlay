@@ -66,6 +66,7 @@ set(Headers
     "source/shader/shader_util.h"
     "source/ui/control_panel.h"
     "source/ui/scene_view.h"
+    "source/ui/keyboard_helper_panel.h"
     "source/utils/imgui_widgets.h"
     "source/utils/str_utils.h"
     "source/window/gl_window.h"

@@ -70,7 +70,7 @@ namespace nui
                 ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
                 if (ImGui::Button("Load", ImVec2(100, 20)))
                 {
-                    mJsonFileDialog.Open();
+                    open_json_dialog();
                 }
 
                 ImGui::BulletText("Scenes Information:");
@@ -161,6 +161,37 @@ namespace nui
                     }
                 }
 
+                if (jsonfile_path != "") {
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::BulletText("Export Current Camera View: ");
+                    ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
+                    if (ImGui::Button("Export", ImVec2(100, 20)))
+                    {
+                        auto position = glm::vec3(0.0f);
+                        auto focus = glm::vec3(0.0f);
+                        auto distance = 0.0f;  
+                        auto orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+                        mSceneView_Container->front()->export_camera_data(position, focus, distance, orientation);
+
+                        nlohmann::json config;
+                        // Load the existing config file
+                        std::ifstream file(jsonfile_path);
+                        config = nlohmann::json::parse(file);
+                        file.close();
+
+                        config["setting"]["Camera"]["Position"] = { position.x, position.y, position.z };
+                        config["setting"]["Camera"]["Focus"] = { focus.x, focus.y, focus.z };
+                        config["setting"]["Camera"]["Distance"] = distance;
+                        config["setting"]["Camera"]["Orientation"] = { orientation.x, orientation.y, orientation.z, orientation.w };
+
+                        std::cout << config.dump(4) << std::endl;
+                        
+                        std::ofstream exp_file(jsonfile_path);
+                        exp_file << config.dump(4);
+                        exp_file.close();
+                    }
+                }
+
                 ImGui::Text(" ");
                 ImGui::BulletText("Background Color:");
 
@@ -202,6 +233,18 @@ namespace nui
                 return;
             }
 
+            ImGui::BulletText("Auto Rotate Camera: ");
+            ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
+            ImGui::Checkbox("Enable", &auto_rotate);
+            if (auto_rotate)
+            {
+                for (auto& scene_view : *mSceneView_Container)
+                {
+                    scene_view->set_auto_rotate();
+                }
+            }
+                
+
             ImGui::BulletText("Set point size:");
             if (ImGui::SliderFloat(" Size", &point_size, 1.0f, 10.0f)) {
                 for (auto& scene_view : *mSceneView_Container)
@@ -219,19 +262,7 @@ namespace nui
                     break;
                 }
             }
-
-            ImGui::BulletText("Set repeat times:");
-            if (ImGui::SliderInt("Repeat Time", &repeat_time, 1, 10))
-            {
-                for (auto& scene_view : *mSceneView_Container)
-                {
-                    scene_view->set_repeat_time(repeat_time);
-                }
-            }
-
-            
-            if (ImGui::SliderInt("Current Frame", &current_frame, 0, total_frames))
-            {
+            if (ImGui::SliderInt("Current Frame", &current_frame, 0, total_frames)) {
                 for (auto& scene_view : *mSceneView_Container)
                 {
                     scene_view->set_frame_idx(current_frame);
@@ -239,8 +270,16 @@ namespace nui
                 }
             }
 
-            for (auto& scene_view : *mSceneView_Container)
-            {
+            ImGui::BulletText("Set repeat times:");
+            if (ImGui::SliderInt("Repeat Time", &repeat_time, 1, 10)) {
+                for (auto& scene_view : *mSceneView_Container)
+                {
+                    scene_view->set_repeat_time(repeat_time);
+                }
+            }
+
+
+            for (auto& scene_view : *mSceneView_Container) {
                 if (scene_view->get_scene_name() == mSceneView_Names.at(selected_scene_index).first)
                 {
                     if (scene_view->get_current_frame() != current_frame)
@@ -254,8 +293,7 @@ namespace nui
 
             ImGui::BulletText("Playback control:");
             // Backward and Forward buttons and play button
-            if (ImGui::Button("<<", ImVec2(50, 20)))
-            {
+            if (ImGui::Button("<<", ImVec2(50, 20))) {
                 if (current_frame > 0)
                 {
                     current_frame = current_frame - 1;
@@ -501,12 +539,25 @@ namespace nui
                 repeat_time = config["setting"]["Repeat_times"].get<int>();
             }
 
+            auto position = glm::vec3(0.0f);
+            auto focus = glm::vec3(0.0f);
+            auto distance = 0.0f;
+            auto orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+
+            if (config["setting"].contains("Camera")) {
+                position = { config["setting"]["Camera"]["Position"][0].get<float>(), config["setting"]["Camera"]["Position"][1].get<float>(), config["setting"]["Camera"]["Position"][2].get<float>() };
+                focus = { config["setting"]["Camera"]["Focus"][0].get<float>(), config["setting"]["Camera"]["Focus"][1].get<float>(), config["setting"]["Camera"]["Focus"][2].get<float>() };
+                distance = config["setting"]["Camera"]["Distance"].get<float>();
+                orientation = { config["setting"]["Camera"]["Orientation"][0].get<float>(), config["setting"]["Camera"]["Orientation"][1].get<float>(), config["setting"]["Camera"]["Orientation"][2].get<float>(), config["setting"]["Camera"]["Orientation"][3].get<float>() };
+            }
+
             for (auto& scene_view : *mSceneView_Container)
             {
                 scene_view->set_FPS(frame_rate);
                 scene_view->set_pointSize(point_size);
                 scene_view->set_background_color(bg_color[0], bg_color[1], bg_color[2]);
                 scene_view->set_repeat_time(repeat_time);
+                scene_view->set_camera(position, focus, distance, orientation);
             }
         }
     }
@@ -518,19 +569,19 @@ namespace nui
 
         if (mJsonFileDialog.HasSelected() && selected_render_mode == 0)
         {
-            auto config_path = mJsonFileDialog.GetSelected().string();
+            jsonfile_path = mJsonFileDialog.GetSelected().string();
             mJsonFileDialog.ClearSelected();
 
             // Check if the file exists
-            json_config_handle(config_path);
+            json_config_handle(jsonfile_path);
         }
 
         if (mPLYFileDialog.HasSelected() && selected_render_mode == 0)
         {
-            jsonfile_path = mPLYFileDialog.GetSelected().string();
+            mCurrentPLYFile = mPLYFileDialog.GetSelected().string();
 
             // Extract the directory path containing the file
-            std::filesystem::path directory_path = std::filesystem::path(jsonfile_path).parent_path();
+            std::filesystem::path directory_path = std::filesystem::path(mCurrentPLYFile).parent_path();
 
             // Convert std::filesystem::path to const char*
             mCurrentPLYFolder = directory_path.string();
@@ -578,5 +629,101 @@ namespace nui
     void Control_Panel::scene_view_start(nui::SceneView* scene_view)
     {
         captureThread = std::thread([this, scene_view]() { scene_view->receivePointCloud(); });
+    }
+
+    void Control_Panel::adjust_frame_rate(bool increase)
+    {
+        if (increase)
+        {
+            frame_rate += 5;
+            frame_rate = (frame_rate < 120) ? frame_rate : 120;
+        }
+        else
+        {
+            frame_rate -= 5;
+            frame_rate = (frame_rate > 0) ? frame_rate : 5;
+        }
+
+        for (auto& scene_view : *mSceneView_Container)
+        {
+            scene_view->set_FPS(frame_rate);
+        }
+    }
+
+    void Control_Panel::open_json_dialog()
+    {
+        mJsonFileDialog.Open();
+    }
+
+    int Control_Panel::get_current_FPS()
+    {
+        return frame_rate;
+    }
+
+    bool Control_Panel::get_limited_frame_rate()
+    {
+        return *mlimited_frame_rate;
+    }
+
+    void Control_Panel::set_limited_frame_rate(bool limited_frame_rate)
+    {
+        *mlimited_frame_rate = limited_frame_rate;
+    }
+
+    bool Control_Panel::get_auto_rotate()
+    {
+        return auto_rotate;
+    }
+
+    void Control_Panel::set_auto_rotate(bool auto_rotate)
+    {
+        this->auto_rotate = auto_rotate;
+    }
+
+    void Control_Panel::playback(bool forward)
+    {
+        if (forward)
+        {
+            if (current_frame < total_frames)
+            {
+                current_frame = current_frame + 1;
+                for (auto& scene_view : *mSceneView_Container)
+                {
+                    scene_view->set_frame_idx(current_frame);
+                    scene_view->set_pause(true);
+                }
+            }
+        }
+        else
+        {
+            if (current_frame > 0)
+            {
+                current_frame = current_frame - 1;
+                for (auto& scene_view : *mSceneView_Container)
+                {
+                    scene_view->set_frame_idx(current_frame);
+                    scene_view->set_pause(true);
+                }
+            }
+        }
+    }
+
+    void Control_Panel::increase_point_size(bool increase)
+    {
+        if (increase)
+        {
+            point_size += 0.5f;
+            point_size = (point_size < 10.0f) ? point_size : 10.0f;
+        }
+        else
+        {
+            point_size -= 0.5f;
+            point_size = (point_size > 1.0f) ? point_size : 1.0f;
+        }
+
+        for (auto& scene_view : *mSceneView_Container)
+        {
+            scene_view->set_pointSize(point_size);
+        }
     }
 }

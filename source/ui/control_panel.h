@@ -28,6 +28,16 @@ namespace nui
         void render();
         void set_scene_view_container(std::shared_ptr<std::vector<std::shared_ptr<nui::SceneView>>> &scene_view_container);
 
+        int get_current_FPS();
+        bool get_limited_frame_rate();
+        void set_limited_frame_rate(bool limited_frame_rate);
+        void playback(bool forward);
+        void open_json_dialog();
+        void adjust_frame_rate(bool increase);
+        bool get_auto_rotate();
+        void set_auto_rotate(bool auto_rotate);
+        void increase_point_size(bool increase);
+
     private:
         std::string get_serialNumber(int index);
         void post_handle();
@@ -87,5 +97,7 @@ namespace nui
 
         std::vector<Scene_Config> scenes_config;
         std::string jsonfile_path = "";
+
+        bool auto_rotate = false;
     };
 }

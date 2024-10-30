@@ -128,7 +128,7 @@ namespace nui
 
             // // Make sure that we always have 1 pcl left to visualize, otherwise pcl will be deleted 
             // // due to differnet in speed of rendering and receiving
-            if (*sequence_loaded && (frame_idx < (pcl_vector->size() - 1)) && !is_paused)
+            if (*sequence_loaded && (frame_idx < (pcl_vector->size() - 1)) && !paused_flag)
             {
                 // Use mutex to avoid race condition
                 auto frameEnd = std::chrono::steady_clock::now();
@@ -157,7 +157,7 @@ namespace nui
                     parse_new_pcl = true;
                     frameStart = std::chrono::steady_clock::now();
                 }
-            } else if (*sequence_loaded && (frame_idx >= (pcl_vector->size() - 1)) && !is_paused) {
+            } else if (*sequence_loaded && (frame_idx >= (pcl_vector->size() - 1)) && !paused_flag) {
                 frame_idx = 0;
             }
         }
@@ -208,7 +208,7 @@ namespace nui
                     if (!pcl_vector->empty() && *sequence_loaded && frame_idx == (pcl_vector->size() - 1))
                     {
                         frame_idx = 0;
-                        is_paused = true;
+                        paused_flag = true;
                     }
                         
                 }).detach();
@@ -307,8 +307,13 @@ namespace nui
 
     void SceneView::set_pause(bool pause)
     {
-        is_paused = pause;
+        paused_flag = pause;
         parse_new_pcl = true;
+    }
+
+    bool SceneView::is_paused()
+    {
+        return paused_flag;
     }
 
     void SceneView::set_background_color(float r, float g, float b)
@@ -348,5 +353,29 @@ namespace nui
 
     void SceneView::set_description(std::string _description) {
         description = _description;
+    }
+
+    void SceneView::export_camera_data(glm::vec3 &position, glm::vec3 &focus, float &distance, glm::quat &orientation) {
+        mCamera->get_camera_data(position, focus, distance, orientation);
+    }
+
+    void SceneView::set_camera(glm::vec3 &position, glm::vec3 &focus, float &distance, glm::quat &orientation) {
+        mCamera->set_camera_data(position, focus, distance, orientation);
+    }
+
+    void SceneView::set_auto_rotate() {
+        mCamera->auto_rotate();
+    }
+
+    void SceneView::camera_horizontal_pan(bool right) {
+        mCamera->horizontal_pan(right);
+    }
+
+    void SceneView::camera_vertical_pan(bool up) {
+        mCamera->vertical_pan(up);
+    }
+
+    void SceneView::rotate(float angle) {
+        mCamera->rotate(angle);
     }
 }

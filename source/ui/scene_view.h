@@ -70,6 +70,8 @@ namespace nui
 
     void set_pause(bool pause);
 
+    bool is_paused();
+
     void set_background_color(float r, float g, float b);
 
     void set_FPS(int fps);
@@ -81,6 +83,18 @@ namespace nui
     void set_repeat_time(int repeat_time);
 
     void set_description(std::string _description);
+
+    void export_camera_data(glm::vec3 &position, glm::vec3 &focus, float &distance, glm::quat &orientation);
+
+    void set_camera(glm::vec3 &position, glm::vec3 &focus, float &distance, glm::quat &orientation);
+
+    void set_auto_rotate();
+
+    void camera_horizontal_pan(bool right);
+
+    void camera_vertical_pan(bool up);
+
+    void rotate(float angle);
 
   private:
     void render_zmq();
@@ -109,7 +123,7 @@ namespace nui
     size_t frame_idx = 0;
     std::shared_ptr<bool> sequence_loaded = std::make_shared<bool>(false);
     std::mutex frame_idx_mutex;
-    bool is_paused = false;
+    bool paused_flag = false;
 
     std::chrono::steady_clock::time_point frameStart = std::chrono::steady_clock::now();
     int FPS = 25;

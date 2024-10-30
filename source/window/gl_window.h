@@ -13,6 +13,7 @@
 
 #include "ui/control_panel.h"
 #include "ui/scene_view.h"
+#include "ui/keyboard_helper_panel.h"
 
 #include "utils/threadqueue.hpp" 
 
@@ -27,6 +28,8 @@ namespace nwindow
   {
   private:
     bool is_minized();
+
+    void handle_input(int key, bool is_long_press);
 
   public:
 
@@ -72,7 +75,9 @@ namespace nwindow
 
     // UI components
     std::unique_ptr<Control_Panel> mPCLPropertyPanel;
-    std::unique_ptr<SceneView> mSceneView_2;
+    std::unique_ptr<KeyboardHelperPanel> mKeyboardHelperPanel;
+    bool show_helper_panel = false;
+    bool show_control_panel = true;
 
     // Backround worker context
     bool mIsRunning = false;
