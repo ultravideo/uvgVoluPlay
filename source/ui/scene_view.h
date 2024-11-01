@@ -94,7 +94,9 @@ namespace nui
 
     void camera_vertical_pan(bool up);
 
-    void rotate(float angle);
+    void rotate_model(bool horizontal, float angle);
+
+    void orbit_camera(bool right);
 
   private:
     void render_zmq();

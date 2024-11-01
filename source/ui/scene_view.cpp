@@ -375,7 +375,11 @@ namespace nui
         mCamera->vertical_pan(up);
     }
 
-    void SceneView::rotate(float angle) {
-        mCamera->rotate(angle);
+    void SceneView::rotate_model(bool horizontal, float angle) {
+        mCamera->rotate_model(horizontal, angle);
+    }
+
+    void SceneView::orbit_camera(bool right) {
+        mCamera->orbit_move(right);
     }
 }

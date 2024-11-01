@@ -40,10 +40,14 @@ namespace nui {
             ImGui::Separator();
 
             ImGui::BulletText("Camera Control:");
-            ImGui::Text("+ W: Zoom In");
-            ImGui::Text("+ S: Zoom Out");
-            ImGui::Text("+ A: Rotate Left");
-            ImGui::Text("+ D: Rotate Right");
+            ImGui::Text("+ W: Go Forward");
+            ImGui::Text("+ S: Go Backward");
+
+            ImGui::Text("+ Q: Rotate the model to the left");
+            ImGui::Text("+ E: Rotate the model to the right");
+            ImGui::Text("+ Z: Rotate the model up");
+            ImGui::Text("+ C: Rotate the model down");
+            
             ImGui::Text("+ Up Arrow: Pan Up");
             ImGui::Text("+ Down Arrow: Pan Down");
             ImGui::Text("+ Left Arrow: Pan Left");

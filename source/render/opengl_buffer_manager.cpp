@@ -66,7 +66,6 @@ namespace nrender
     glDisableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    //glDeleteBuffers(1, &mIBO);
     glDeleteBuffers(1, &mVBO_positions_parse_id);
     glDeleteBuffers(1, &mVBO_attributes_parse_id);
     glDeleteVertexArrays(1, &mVAO_parsing_id);
@@ -93,7 +92,7 @@ namespace nrender
     mHeight = height;
 
     if (mFBO)
-    {
+    { 
       delete_buffers();
     }
 
