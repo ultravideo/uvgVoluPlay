@@ -23,7 +23,7 @@ namespace Communication {
     }
 
     void Portal::set_sequence_path(std::string folder_path) {
-        sequence_handler->sequence_path = folder_path;
+        sequence_handler->sequence_paths.push_back(folder_path);
     }
 
     void Portal::zmq_run() {
@@ -34,8 +34,8 @@ namespace Communication {
         colorSocket.bind(zmq_handler->color_address);
         positionSocket.bind(zmq_handler->position_address);
 
-        colorSocket.set(zmq::sockopt::rcvtimeo, 2000);
-        positionSocket.set(zmq::sockopt::rcvtimeo, 2000);
+        colorSocket.set(zmq::sockopt::rcvtimeo, 6000);
+        positionSocket.set(zmq::sockopt::rcvtimeo, 6000);
 
         std::mutex receive_message_mutex;
         int counter = 0;
@@ -56,7 +56,7 @@ namespace Communication {
                     counter++;
                 }
                 else if (!colorRes && counter != 0) {
-                    std::cout << "Timeout: No message received." << std::endl;
+                    utilities::Logger::log(utilities::LogLevel::WARNING, "Portal", "Timeout: No message received.\n");                    
                     stop_signal();
                 }
 
@@ -83,7 +83,7 @@ namespace Communication {
                     zmq_handler->receive_message_cv.notify_one();
                 }
                 else if (!positionRes && counter != 0) {
-                    std::cout << "Timeout: No message received." << std::endl;
+                    utilities::Logger::log(utilities::LogLevel::WARNING, "Portal", "Timeout: No message received.\n");
                     stop_signal();
                 }
             }
@@ -185,7 +185,7 @@ namespace Communication {
 
             pcl->Finallized();
             sequence_handler->pcl_vector->push_back(pcl);
-            utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Loaded  sequence_handler->pcl_vector size " + std::to_string(sequence_handler->pcl_vector->size()) + "\n");
+            // utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Loaded  sequence_handler->pcl_vector size " + std::to_string(sequence_handler->pcl_vector->size()) + "\n");
         } 
     }
 
@@ -196,26 +196,43 @@ namespace Communication {
     void Portal::sequence_run() {
 
         if (!sequence_handler->pcl_vector->empty()) {
-            utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Restart to run the sequence at path: " + sequence_handler->sequence_path + "\n");
+            utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Restart to run other sequence\n");
             return;
         }
         *sequence_handler->sequence_loaded = false;
 
-        // Go to the folder of the sequence and check if there are any files
-        std::string folder_path = sequence_handler->sequence_path;
-        std::vector<std::string> files;
-        for (const auto & entry : std::filesystem::directory_iterator(folder_path)) {
-            files.push_back(entry.path().string());
+        for (const auto folder_path : sequence_handler->sequence_paths) {
+            if (!std::filesystem::exists(folder_path)) {
+                utilities::Logger::log(utilities::LogLevel::ERROR, "Portal", "Invalid folder path\n");
+                return;
+            }
+
+            std::vector<std::string> files;
+            for (const auto & entry : std::filesystem::directory_iterator(folder_path)) {
+                files.push_back(entry.path().string());
+            }
+
+            // Load the point clouds from the files
+            for (const auto & file : files) {
+                load_pointcloud(file);
+            }
+            std::cout << "Loaded " << sequence_handler->pcl_vector->size() << " files\n";
         }
 
-        // Load the point clouds from the files
-        for (const auto & file : files) {
-            load_pointcloud(file);
-        }
+        // std::string folder_path = sequence_handler->sequence_paths;
+        
+        // for (const auto & entry : std::filesystem::directory_iterator(folder_path)) {
+        //     files.push_back(entry.path().string());
+        // }
+
+        // // Load the point clouds from the files
+        // for (const auto & file : files) {
+        //     load_pointcloud(file);
+        // }
 
         *sequence_handler->sequence_loaded = true;
 
-        utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Loaded " + std::to_string(files.size()) + " files\n");
+        utilities::Logger::log(utilities::LogLevel::INFO, "Portal", "Loaded " + std::to_string(sequence_handler->pcl_vector->size()) + " files\n");
     }
 
 }; // namespace Communication

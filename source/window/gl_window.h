@@ -13,6 +13,9 @@
 
 #include "ui/control_panel.h"
 #include "ui/scene_view.h"
+#include "ui/keyboard_helper_panel.h"
+
+#include "utils/threadqueue.hpp" 
 
 using namespace nui;
 using namespace nelems;
@@ -24,8 +27,10 @@ namespace nwindow
   class GLWindow : public IWindow
   {
   private:
-    std::shared_ptr<std::vector<std::shared_ptr<nui::SceneView>>> mSceneView_Container = std::make_shared<std::vector<std::shared_ptr<nui::SceneView>>>();
-    
+    bool is_minized();
+
+    void handle_input(int key, bool is_long_press);
+
   public:
 
     GLWindow() :
@@ -45,7 +50,7 @@ namespace nwindow
 
     void* get_native_window() override { return mWindow; }
 
-    void set_native_window(void* window)
+    void set_native_window(void* window) override
     {
       mWindow = (GLFWwindow*)window;
     }
@@ -60,23 +65,24 @@ namespace nwindow
 
     bool is_running() { return mIsRunning; }
 
-
   private:
 
     GLFWwindow* mWindow;
 
     // Render contexts
     std::unique_ptr<UIContext> mUICtx;
-
     std::unique_ptr<OpenGL_Context> mRenderCtx;
 
     // UI components
+    std::unique_ptr<Control_Panel> mPCLPropertyPanel;
+    std::unique_ptr<KeyboardHelperPanel> mKeyboardHelperPanel;
+    bool show_helper_panel = false;
+    bool show_control_panel = true;
 
-    std::unique_ptr<PCL_Property_Panel> mPCLPropertyPanel;
-
-    std::unique_ptr<SceneView> mSceneView_2;
-
-    bool mIsRunning;
+    // Backround worker context
+    bool mIsRunning = false;
+    std::shared_ptr<utilities::ThreadQueue> thread_queue = std::make_shared<utilities::ThreadQueue>(40);
+    std::shared_ptr<std::vector<std::shared_ptr<nui::SceneView>>> mSceneView_Container = std::make_shared<std::vector<std::shared_ptr<nui::SceneView>>>();
 
   };
 }

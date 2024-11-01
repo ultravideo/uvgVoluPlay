@@ -22,8 +22,6 @@ namespace nrender
       return;
     }
 
-    //start timer
-    // auto start = std::chrono::high_resolution_clock::now();
 
     // Calculate the total size needed for both position and attribute data
     size_t positionSize = (pointCloud->getPositionsVec().size()) * sizeof(glm::vec3);
@@ -39,8 +37,6 @@ namespace nrender
     // Specify the layout of the position data
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
-    // Unbind the VBO
-    // glBindBuffer(GL_ARRAY_BUFFER, 0); // Error here
 
    // Bind the VBO
     glBindBuffer(GL_ARRAY_BUFFER, mVBO_attributes_parse_id);
@@ -49,14 +45,9 @@ namespace nrender
     // Specify the layout of the attribute data
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)(0));
-    // Unbind the VCO
-    // glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glBindVertexArray(0);
 
-    // auto end = std::chrono::high_resolution_clock::now();
-    // std::chrono::duration<double> elapsed = end - start;
-    // std::cout << "Time taken to parse buffers: " << elapsed.count() << "s\n";
   }
 
   void OpenGL_VertexIndexBuffer::draw(int index_count)
@@ -159,11 +150,12 @@ namespace nrender
   {
     if (mFBO)
     {
-      glDeleteFramebuffers(GL_FRAMEBUFFER, &mFBO);
+      glDeleteFramebuffers(1, &mFBO);
       glDeleteTextures(1, &mTexId);
       glDeleteTextures(1, &mDepthId);
       mTexId = 0;
       mDepthId = 0;
+      mFBO = 0;
     }
 
   }
@@ -172,7 +164,6 @@ namespace nrender
   {
     glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
     glViewport(0, 0, mWidth, mHeight);
-    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glClearColor(background_color[0], background_color[1], background_color[2], background_color[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

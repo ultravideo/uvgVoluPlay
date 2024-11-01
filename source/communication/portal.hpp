@@ -35,7 +35,7 @@ namespace Communication {
     };
 
     struct sequenceHandler {
-        std::string sequence_path = "";                         // Path to the sequence
+        std::vector<std::string> sequence_paths;                         // Path to the sequence
         std::shared_ptr<std::vector<std::shared_ptr<nelems::GLPointCloud>>> pcl_vector;
         std::shared_ptr<nelems::Mesh> mMesh = nullptr;
         std::shared_ptr<bool> sequence_loaded = nullptr;

@@ -5,8 +5,38 @@
 
 namespace nui
 {
+    SceneView::SceneView() : 
+      mCamera(nullptr), mFrameBuffer(nullptr), mShader(nullptr),
+      mLight(nullptr), mSize(800, 600)
+    {
+      mFrameBuffer = std::make_unique<nrender::OpenGL_FrameBuffer>();
+      mFrameBuffer->create_buffers(800, 600);
+      mShader = std::make_unique<nshaders::Shader>();
+      mShader->load("shaders/vs.shader", "shaders/fr_nolight.shader");
+      // mLight = std::make_unique<nelems::Light>();
+      mCamera = std::make_unique<nelems::Camera>(glm::vec3(-94, 272, -251), 45.0f, 1.3f, 0.1f, 2000.0f);
+      // mCamera = std::make_unique<nelems::Camera>(glm::vec3(10, 100, 200), 45.0f, 1.3f, 0.1f, 2000.0f);
+
+      if (!mMesh) {
+          mMesh = std::make_shared<nelems::Mesh>();
+      }
+      mMesh->init();
+      temp_repeat_time = repeat_time;
+    }
+
+    SceneView::~SceneView()
+    {
+      mShader->unload();
+      mFrameBuffer->delete_buffers();
+    }
+
     void SceneView::resize(int32_t width, int32_t height)
     {
+        if (width <= 0 || height <= 0)
+        {
+            return;
+        }
+
         mSize.x = width;
         mSize.y = height;
 
@@ -40,13 +70,13 @@ namespace nui
         {
             if (!pcl_queue->empty() && parse_new_pcl)
             {                
-                if (frame_sequence_idx == 0)
+                if (frame_idx == 0)
                 {
                     set_focus_on_fisrt_frame(pcl_queue->front()->getPosition(0));
                 }
                 mMesh->parse_data(pcl_queue->front());
                 parse_new_pcl = false;
-                frame_sequence_idx++;
+                frame_idx++;
             }
             mMesh->render();
         }
@@ -86,15 +116,11 @@ namespace nui
 
         if (mMesh)
         {
-            if (*sequence_loaded && parse_new_pcl && (frame_sequence_idx < (pcl_vector->size())))
+            if (*sequence_loaded && parse_new_pcl && (frame_idx < (pcl_vector->size())))
             {        
                 // Use mutex to avoid race condition
-                std::lock_guard<std::mutex> lock(frame_idx_mutex);            
-                // if (frame_sequence_idx == 0)
-                // {
-                //     set_focus_on_fisrt_frame(pcl_queue->front()->getPosition(0));
-                // }       
-                mMesh->parse_data(pcl_vector->at(frame_sequence_idx));
+                std::lock_guard<std::mutex> lock(frame_idx_mutex);                  
+                mMesh->parse_data(pcl_vector->at(frame_idx));
                 parse_new_pcl = false;
             }
 
@@ -102,20 +128,50 @@ namespace nui
 
             // // Make sure that we always have 1 pcl left to visualize, otherwise pcl will be deleted 
             // // due to differnet in speed of rendering and receiving
-            if (*sequence_loaded && (frame_sequence_idx < (pcl_vector->size() - 1)) && !is_paused)
+            if (*sequence_loaded && (frame_idx < (pcl_vector->size() - 1)) && !paused_flag)
             {
                 // Use mutex to avoid race condition
-                std::lock_guard<std::mutex> lock(frame_idx_mutex);
-                frame_sequence_idx++;
-                parse_new_pcl = true;
-            } else if (*sequence_loaded && (frame_sequence_idx >= (pcl_vector->size() - 1)) && !is_paused) {
-                frame_sequence_idx = 0;
+                auto frameEnd = std::chrono::steady_clock::now();
+                std::chrono::duration<double, std::milli> elapsed = frameEnd - frameStart;
+                int remainingTime = frameDuration - static_cast<int>(elapsed.count());
+
+                if (remainingTime > 0) {
+                    
+                } else {
+                    std::lock_guard<std::mutex> lock(frame_idx_mutex);
+                    
+                    if (!Sequence_length.empty()) {
+                        if (temp_repeat_time != 1 && frame_idx+1 == (Sequence_length.at(curr_sequence_idx)*(curr_sequence_idx+1)-1)) {
+                            frame_idx = Sequence_length.at(curr_sequence_idx)*(curr_sequence_idx)-1;
+                            temp_repeat_time--;
+                        } else if (temp_repeat_time == 1 && frame_idx+1 == (Sequence_length.at(curr_sequence_idx)*(curr_sequence_idx+1)-1)) {
+                            curr_sequence_idx = (curr_sequence_idx + 1) % Sequence_length.size();
+
+                            frame_idx = Sequence_length.at(curr_sequence_idx)*(curr_sequence_idx)-1;
+                            temp_repeat_time = repeat_time;
+                        }
+                    }
+                    
+                    frame_idx++;
+
+                    parse_new_pcl = true;
+                    frameStart = std::chrono::steady_clock::now();
+                }
+            } else if (*sequence_loaded && (frame_idx >= (pcl_vector->size() - 1)) && !paused_flag) {
+                frame_idx = 0;
             }
         }
 
         mFrameBuffer->unbind();
 
         ImGui::Begin(scene_name.c_str());
+ 
+        if (description != "") {
+            ImGui::SetWindowFontScale(1.5f);
+            ImGui::Text("%s", description.c_str());
+            ImGui::SetWindowFontScale(1.0f);
+        }
+
 
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
         mSize = { viewportPanelSize.x, viewportPanelSize.y };
@@ -141,33 +197,37 @@ namespace nui
 
     void SceneView::receivePointCloud()
     {
-        if (mRenderMode == RENDER_ZMQ) {
-            frame_sequence_idx = 0;
-            mPortal->zmq_run();
-        } 
-        else if (mRenderMode == RENDER_SEQUENCE)
-        {
-            mPortal->sequence_run();
-            if (!pcl_vector->empty() && *sequence_loaded && frame_sequence_idx == (pcl_vector->size() - 1))
+            if (mRenderMode == RENDER_ZMQ) {
+                frame_idx = 0;
+                mPortal->zmq_run();
+            } 
+            else if (mRenderMode == RENDER_SEQUENCE)
             {
-                frame_sequence_idx = 0;
-                is_paused = true;
+                std::thread([this]() {
+                    mPortal->sequence_run();
+                    if (!pcl_vector->empty() && *sequence_loaded && frame_idx == (pcl_vector->size() - 1))
+                    {
+                        frame_idx = 0;
+                        paused_flag = true;
+                    }
+                        
+                }).detach();
             }
-        }
     }
 
     void SceneView::stop()
     {
+        mMesh = nullptr;
         switch (this->mRenderMode)
         {
         case RENDER_ZMQ:
             mPortal->stop_signal();
-            frame_sequence_idx = 0;
+            frame_idx = 0;
             break;
         case RENDER_SEQUENCE:
             pcl_vector->clear();
             sequence_loaded = std::make_shared<bool>(false);
-            frame_sequence_idx = 0;
+            frame_idx = 0;
             break;
         default:
             break;
@@ -203,7 +263,7 @@ namespace nui
             if (pcl_vector->empty())
             {
                 mPortal->set_data_stream(pcl_vector, mMesh, Communication::SourceMode::SOURCE_SEQUENCE);
-                frame_sequence_idx = 0;
+                frame_idx = 0;
                 mPortal->set_load_sequence(sequence_loaded);
             }
             break;
@@ -235,20 +295,25 @@ namespace nui
 
     int SceneView::get_current_frame()
     {
-        return frame_sequence_idx;
+        return frame_idx;
     }
 
     void SceneView::set_frame_idx(size_t idx)
     {
         // Use mutex to avoid race condition
         std::lock_guard<std::mutex> lock(frame_idx_mutex);
-        frame_sequence_idx = idx;
+        frame_idx = idx;
     }
 
     void SceneView::set_pause(bool pause)
     {
-        is_paused = pause;
+        paused_flag = pause;
         parse_new_pcl = true;
+    }
+
+    bool SceneView::is_paused()
+    {
+        return paused_flag;
     }
 
     void SceneView::set_background_color(float r, float g, float b)
@@ -266,5 +331,51 @@ namespace nui
         else {
             utilities::Logger::log(utilities::LogLevel::ERROR, "SceneView", "Portal is not initialized\n");
         }
+    }
+
+    void SceneView::reset_view() { 
+      mCamera->reset(); 
+    }
+
+    void SceneView::set_FPS(int fps) {
+        FPS = fps;
+        frameDuration = 1000 / FPS;
+    }
+
+    void SceneView::reserve_sequence_length(std::vector<int> _sequence_length) {
+        Sequence_length = _sequence_length;
+    }
+
+    void SceneView::set_repeat_time(int _repeat_time) {
+        repeat_time = _repeat_time;
+        temp_repeat_time = repeat_time;
+    }
+
+    void SceneView::set_description(std::string _description) {
+        description = _description;
+    }
+
+    void SceneView::export_camera_data(glm::vec3 &position, glm::vec3 &focus, float &distance, glm::quat &orientation) {
+        mCamera->get_camera_data(position, focus, distance, orientation);
+    }
+
+    void SceneView::set_camera(glm::vec3 &position, glm::vec3 &focus, float &distance, glm::quat &orientation) {
+        mCamera->set_camera_data(position, focus, distance, orientation);
+    }
+
+    void SceneView::set_auto_rotate() {
+        mCamera->auto_rotate();
+    }
+
+    void SceneView::camera_horizontal_pan(bool right) {
+        mCamera->horizontal_pan(right);
+    }
+
+    void SceneView::camera_vertical_pan(bool up) {
+        mCamera->vertical_pan(up);
+    }
+
+    void SceneView::rotate(float angle) {
+        mCamera->rotate(angle);
     }
 }

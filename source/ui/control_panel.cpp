@@ -4,23 +4,42 @@
 
 namespace nui
 {
-    PCL_Property_Panel::PCL_Property_Panel() {
+    Control_Panel::Control_Panel() {
         mCurrentPLYFile = "< ... >";
         mPLYFileDialog.SetTitle("Open PLY file");
         mPLYFileDialog.SetFileFilters({ ".ply" });
+
+        mJsonFileDialog.SetTitle("Open JSON config file");
+        mJsonFileDialog.SetFileFilters({ ".json" });
     }
 
-    PCL_Property_Panel::~PCL_Property_Panel() {
+    Control_Panel::~Control_Panel() {
         if (captureThread.joinable())
         {
             captureThread.join();
         }
     }
 
-    void PCL_Property_Panel::render()
+    void Control_Panel::render()
     {
         ImGui::Begin("Controller");
         
+        this->main_control_handle();
+
+        ImGui::Separator();
+
+        this->view_control_handle();
+
+        ImGui::Separator();
+
+        this->scene_view_control_handle();
+
+        ImGui::End();
+
+        post_handle();
+    }
+
+    void Control_Panel::main_control_handle() {
         if (ImGui::CollapsingHeader("Main Control", ImGuiTreeNodeFlags_DefaultOpen))
         {
             ImGui::AlignTextToFramePadding();
@@ -47,43 +66,15 @@ namespace nui
             {
             case 0:
                 ImGui::AlignTextToFramePadding();
-                ImGui::BulletText("Select Scene");
+                ImGui::BulletText("Load preset configuration: ");
                 ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
-
-                if (mSceneView_Container->size() > 0)
+                if (ImGui::Button("Load", ImVec2(100, 20)))
                 {
-                    if (ImGui::BeginCombo("##inputlist_scenelist", mSceneView_Names.at(selected_scene_index).first.c_str())) // The ##combo is a unique identifier
-                    {
-                        for (size_t i = 0; i < mSceneView_Container->size(); i++)
-                        {
-                            bool isSelected = (selected_scene_index == i);
-                            if (ImGui::Selectable(mSceneView_Names.at(i).first.c_str(), isSelected))
-                            {
-                                selected_scene_index = i;
-                            }
-                            if (isSelected)
-                            {
-                                ImGui::SetItemDefaultFocus();
-                            }
-                        }
-                        ImGui::EndCombo();
-                    }
-                } else {
-                    if (ImGui::BeginCombo("##inputlist_scenelist", "No Scene Available")) {
-                        ImGui::EndCombo();
-                    }
+                    open_json_dialog();
                 }
 
-                ImGui::AlignTextToFramePadding();
-                ImGui::BulletText("Select sequence Folder: ");
-                ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
-                if (ImGui::Button("Open..."))
-                {
-                    mPLYFileDialog.Open();
-                }
-
-                ImGui::Separator();
                 ImGui::BulletText("Scenes Information:");
+                ImGui::Text("Note: Click respective scene to select folder");
                 ImGui::BeginTable("##scene_table", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
                 ImGui::TableSetupColumn("Scene Name", ImGuiTableColumnFlags_WidthFixed, 100.0f);
                 ImGui::TableSetupColumn("Sequence Name", ImGuiTableColumnFlags_WidthStretch, 100.0f);
@@ -97,9 +88,16 @@ namespace nui
                     {
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();
-                        ImGui::Text(mSceneView_Names.at(i).first.c_str());
+                        ImGui::Text("%s", mSceneView_Names.at(i).first.c_str());
                         ImGui::TableNextColumn();
-                        ImGui::Text(mSceneView_Names.at(i).second.c_str());
+
+                        if (ImGui::Selectable(mSceneView_Names.at(i).second.c_str()))
+                        {
+                            mPLYFileDialog.Open();
+                            selected_scene_index = i;
+                            ImGui::Text("%s", mSceneView_Names.at(i).second.c_str());
+                        }
+                        
                         ImGui::TableNextColumn();
                         ImGui::Text("%d", mSceneView_Container->at(i)->get_total_frames());
                     }
@@ -139,29 +137,17 @@ namespace nui
 
             if (ImGui::Button("Stop", ImVec2(100, 20)) && StartButton_disable)
             {
-                for (auto& scene_view : *mSceneView_Container)
-                {
-                    scene_view->stop();
-                }
-                        
-                if (captureThread.joinable())
-                {
-                    captureThread.join();
-                }
-
-                mSceneView_Container->clear();
-                mSceneView_Names.clear();
-
-                StartButton_disable = false;
-                
-                utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Signal to stop Portal\n");
+                this->stop_button_handle();
             }
+        }
+    }
 
-            ImGui::Separator();
-            if (ImGui::CollapsingHeader("View Control", ImGuiTreeNodeFlags_DefaultOpen))
+    void Control_Panel::view_control_handle()
+    {
+        if (ImGui::CollapsingHeader("View Control", ImGuiTreeNodeFlags_DefaultOpen))
             {   
                 ImGui::AlignTextToFramePadding();
-                ImGui::BulletText("Number of Views: %d --- ", mSceneView_Container->size());
+                ImGui::BulletText("Number of Views: %d --- ", static_cast<int>(mSceneView_Container->size()));
                 ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
                 if (ImGui::Button("Add Views", ImVec2(100, 20)))
                 {
@@ -170,9 +156,39 @@ namespace nui
                     } else {
                         std::shared_ptr<nui::SceneView> new_scene_view = std::make_shared<nui::SceneView>();
                         new_scene_view->set_scene_name("Scene " + std::to_string(mSceneView_Container->size()));
-                        std::cout << "Size of scene view container: " << mSceneView_Container->size() <<  " + Size of scene view names: " << mSceneView_Names.size() << std::endl;
                         mSceneView_Container->push_back(new_scene_view);
                         mSceneView_Names.push_back(std::make_pair(new_scene_view->get_scene_name(), ""));
+                    }
+                }
+
+                if (jsonfile_path != "") {
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::BulletText("Export Current Camera View: ");
+                    ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
+                    if (ImGui::Button("Export", ImVec2(100, 20)))
+                    {
+                        auto position = glm::vec3(0.0f);
+                        auto focus = glm::vec3(0.0f);
+                        auto distance = 0.0f;  
+                        auto orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+                        mSceneView_Container->front()->export_camera_data(position, focus, distance, orientation);
+
+                        nlohmann::json config;
+                        // Load the existing config file
+                        std::ifstream file(jsonfile_path);
+                        config = nlohmann::json::parse(file);
+                        file.close();
+
+                        config["setting"]["Camera"]["Position"] = { position.x, position.y, position.z };
+                        config["setting"]["Camera"]["Focus"] = { focus.x, focus.y, focus.z };
+                        config["setting"]["Camera"]["Distance"] = distance;
+                        config["setting"]["Camera"]["Orientation"] = { orientation.x, orientation.y, orientation.z, orientation.w };
+
+                        std::cout << config.dump(4) << std::endl;
+                        
+                        std::ofstream exp_file(jsonfile_path);
+                        exp_file << config.dump(4);
+                        exp_file.close();
                     }
                 }
 
@@ -180,19 +196,55 @@ namespace nui
                 ImGui::BulletText("Background Color:");
 
                 ImGui::ColorPicker3("Background Color", bg_color, ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_DisplayRGB);
+
                 for (auto& scene_view : *mSceneView_Container)
                 {
                     scene_view->set_background_color(bg_color[0], bg_color[1], bg_color[2]);
                 }
-
+                
                 ImGui::Text(" ");
             }
-        }
 
-        ImGui::Separator();
+    }
 
+    void Control_Panel::scene_view_control_handle() {
+        
         if (ImGui::CollapsingHeader("Scene Control", ImGuiTreeNodeFlags_DefaultOpen))
         {
+            ImGui::BulletText("Limit square Frame Rate:");
+            ImGui::Checkbox("Enable Frame Rate Limit", mlimited_frame_rate.get());
+
+            if (ImGui::SliderInt(" Frame Rate", &frame_rate, 5, 120) && *mlimited_frame_rate)
+            {
+                for (auto& scene_view : *mSceneView_Container)
+                {
+                    scene_view->set_FPS(frame_rate);
+                }
+            } else if (!*mlimited_frame_rate) {
+                for (auto& scene_view : *mSceneView_Container)
+                {
+                    scene_view->set_FPS(1000);
+                }
+            }
+            frame_rate = ((frame_rate / 5) * 5 > 0) ? (frame_rate / 5) * 5 : 5;
+
+            if (!StartButton_disable)
+            {
+                return;
+            }
+
+            ImGui::BulletText("Auto Rotate Camera: ");
+            ImGui::SameLine(UI_configation.offset_from_start_x, UI_configation.spacing_x);
+            ImGui::Checkbox("Enable", &auto_rotate);
+            if (auto_rotate)
+            {
+                for (auto& scene_view : *mSceneView_Container)
+                {
+                    scene_view->set_auto_rotate();
+                }
+            }
+                
+
             ImGui::BulletText("Set point size:");
             if (ImGui::SliderFloat(" Size", &point_size, 1.0f, 10.0f)) {
                 for (auto& scene_view : *mSceneView_Container)
@@ -210,9 +262,7 @@ namespace nui
                     break;
                 }
             }
-            
-            if (ImGui::SliderInt("Current Frame", &current_frame, 0, total_frames))
-            {
+            if (ImGui::SliderInt("Current Frame", &current_frame, 0, total_frames)) {
                 for (auto& scene_view : *mSceneView_Container)
                 {
                     scene_view->set_frame_idx(current_frame);
@@ -220,8 +270,16 @@ namespace nui
                 }
             }
 
-            for (auto& scene_view : *mSceneView_Container)
-            {
+            ImGui::BulletText("Set repeat times:");
+            if (ImGui::SliderInt("Repeat Time", &repeat_time, 1, 10)) {
+                for (auto& scene_view : *mSceneView_Container)
+                {
+                    scene_view->set_repeat_time(repeat_time);
+                }
+            }
+
+
+            for (auto& scene_view : *mSceneView_Container) {
                 if (scene_view->get_scene_name() == mSceneView_Names.at(selected_scene_index).first)
                 {
                     if (scene_view->get_current_frame() != current_frame)
@@ -232,10 +290,10 @@ namespace nui
                 }
             }
 
+
             ImGui::BulletText("Playback control:");
             // Backward and Forward buttons and play button
-            if (ImGui::Button("<<", ImVec2(50, 20)))
-            {
+            if (ImGui::Button("<<", ImVec2(50, 20))) {
                 if (current_frame > 0)
                 {
                     current_frame = current_frame - 1;
@@ -300,13 +358,9 @@ namespace nui
                 }
             }
         }
-    
-        ImGui::End();
-
-        post_handle();
     }
 
-    void PCL_Property_Panel::set_scene_view_container(std::shared_ptr<std::vector<std::shared_ptr<nui::SceneView>>> &scene_view_container)
+    void Control_Panel::set_scene_view_container(std::shared_ptr<std::vector<std::shared_ptr<nui::SceneView>>> &scene_view_container)
     {
         mSceneView_Container = scene_view_container;
 
@@ -316,14 +370,9 @@ namespace nui
         }
     }
 
-    void PCL_Property_Panel::start_button_handle() {
+    void Control_Panel::start_button_handle() {
         bool all_scene_view_has_sequence = true;
-
-        for (auto& scene_view : *mSceneView_Container)
-        {
-            std::cout << "Scene " << scene_view->get_scene_name() << " has sequence path: " << mSceneView_Names.at(selected_scene_index).second << std::endl;
-        }
-
+        
         if (selected_render_mode == 0) {
             if (mSceneView_Container->empty())
             {
@@ -333,9 +382,9 @@ namespace nui
 
             for (auto& scene_view : mSceneView_Names)
             {
+                // Verify the path to sequence folder is valid
                 if (scene_view.second.empty())
                 {
-                    std::cout << "Scene " << scene_view.first << " has no sequence path\n";
                     all_scene_view_has_sequence = false;
                     break;
                 }
@@ -373,21 +422,166 @@ namespace nui
                 }
                 scene_view->run();
             }
-
         }
 
         utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Signal to start Portal\n");
     } 
 
-    void PCL_Property_Panel::post_handle()
+    void Control_Panel::stop_button_handle() {
+        for (auto& scene_view : *mSceneView_Container)
+        {
+            scene_view->stop();
+        }
+                
+        if (captureThread.joinable())
+        {
+            captureThread.join();
+        }
+
+        mSceneView_Container->clear();
+        mSceneView_Names.clear();
+        scenes_config.clear();
+
+        StartButton_disable = false;
+        
+        utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Signal to stop Portal\n");
+    }
+
+    void Control_Panel::json_config_handle(std::string config_path)
+    {
+        if (!std::filesystem::exists(config_path))
+        {
+            utilities::Logger::log(utilities::LogLevel::ERROR, "INIT", "Config file does not exist\n");
+        }
+
+        scenes_config.clear();
+        mSceneView_Container->clear();
+        mSceneView_Names.clear();
+
+        std::ifstream file(config_path);
+        nlohmann::json config = nlohmann::json::parse(file);
+
+
+        if (config.contains("scenes") && config["scenes"].is_array())
+        {
+            for (const auto& scene_json : config["scenes"])
+            {
+                // Ensure each scene has "Name" and "Sequence"
+                if (scene_json.contains("Name") && scene_json.contains("Sequence") && scene_json["Sequence"].is_array())
+                {
+                    Scene_Config scene;
+                    scene.Name = scene_json["Name"].get<std::string>();
+                    scene.Sequence = scene_json["Sequence"].get<std::vector<std::string>>();
+                    scene.Sequence_length = scene_json["Sequence_Length"].get<std::vector<int>>();
+                    if (scene_json.contains("Description")) {
+                        scene.Description = scene_json["Description"].get<std::string>();
+                    }
+                    // Confirm scene.Sequence is a folder   
+                    for (const auto& path : scene.Sequence)
+                    {
+                        if (!std::filesystem::exists(path) || !std::filesystem::is_directory(path))
+                        {
+                            utilities::Logger::log(utilities::LogLevel::ERROR, "INIT", "Invalid folder path\n");
+                            return;
+                        }
+                    }
+                    scenes_config.push_back(scene);
+                }
+                else
+                {
+                    utilities::Logger::log(utilities::LogLevel::ERROR, "INIT", "Invalid scene format\n");
+                }
+            }
+            
+            mSceneView_Container->clear();
+            mSceneView_Names.clear();
+
+            // Output each scene's information
+            for (const auto& scene : scenes_config)
+            {   
+                std::shared_ptr<nui::SceneView> new_scene_view = std::make_shared<nui::SceneView>();
+                new_scene_view->set_scene_name(scene.Name);
+                new_scene_view->set_render_mode(selected_render_mode);
+                new_scene_view->reserve_sequence_length(scene.Sequence_length);
+                new_scene_view->set_description(scene.Description);
+
+                for (const auto& path : scene.Sequence)
+                {
+                    new_scene_view->set_sequence_path(path);
+                }
+
+                mSceneView_Container->push_back(new_scene_view);
+                mSceneView_Names.push_back(std::make_pair(new_scene_view->get_scene_name(), std::to_string(scene.Sequence.size()) + " sequence(s)"));
+            }
+        }
+        else
+        {
+            utilities::Logger::log(utilities::LogLevel::ERROR, "INIT", "Scenes array is missing or invalid\n");
+        }
+
+        if (config.contains("setting")) {
+            if (config["setting"].contains("FPS")) {
+                frame_rate = config["setting"]["FPS"].get<int>();
+                *mlimited_frame_rate = true;
+            }
+
+            if (config["setting"].contains("Point_size")) {
+                point_size = config["setting"]["Point_size"].get<float>();
+            }
+
+            if (config["setting"].contains("Background_color")) {
+                bg_color[0] = config["setting"]["Background_color"][0].get<float>();
+                bg_color[1] = config["setting"]["Background_color"][1].get<float>();
+                bg_color[2] = config["setting"]["Background_color"][2].get<float>();
+            }
+
+            if (config["setting"].contains("Repeat_times")) {
+                repeat_time = config["setting"]["Repeat_times"].get<int>();
+            }
+
+            auto position = glm::vec3(0.0f);
+            auto focus = glm::vec3(0.0f);
+            auto distance = 0.0f;
+            auto orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+
+            if (config["setting"].contains("Camera")) {
+                position = { config["setting"]["Camera"]["Position"][0].get<float>(), config["setting"]["Camera"]["Position"][1].get<float>(), config["setting"]["Camera"]["Position"][2].get<float>() };
+                focus = { config["setting"]["Camera"]["Focus"][0].get<float>(), config["setting"]["Camera"]["Focus"][1].get<float>(), config["setting"]["Camera"]["Focus"][2].get<float>() };
+                distance = config["setting"]["Camera"]["Distance"].get<float>();
+                orientation = { config["setting"]["Camera"]["Orientation"][0].get<float>(), config["setting"]["Camera"]["Orientation"][1].get<float>(), config["setting"]["Camera"]["Orientation"][2].get<float>(), config["setting"]["Camera"]["Orientation"][3].get<float>() };
+            }
+
+            for (auto& scene_view : *mSceneView_Container)
+            {
+                scene_view->set_FPS(frame_rate);
+                scene_view->set_pointSize(point_size);
+                scene_view->set_background_color(bg_color[0], bg_color[1], bg_color[2]);
+                scene_view->set_repeat_time(repeat_time);
+                scene_view->set_camera(position, focus, distance, orientation);
+            }
+        }
+    }
+
+    void Control_Panel::post_handle()
     {
         mPLYFileDialog.Display();
+        mJsonFileDialog.Display();
+
+        if (mJsonFileDialog.HasSelected() && selected_render_mode == 0)
+        {
+            jsonfile_path = mJsonFileDialog.GetSelected().string();
+            mJsonFileDialog.ClearSelected();
+
+            // Check if the file exists
+            json_config_handle(jsonfile_path);
+        }
+
         if (mPLYFileDialog.HasSelected() && selected_render_mode == 0)
         {
-            auto file_path = mPLYFileDialog.GetSelected().string();
+            mCurrentPLYFile = mPLYFileDialog.GetSelected().string();
 
             // Extract the directory path containing the file
-            std::filesystem::path directory_path = std::filesystem::path(file_path).parent_path();
+            std::filesystem::path directory_path = std::filesystem::path(mCurrentPLYFile).parent_path();
 
             // Convert std::filesystem::path to const char*
             mCurrentPLYFolder = directory_path.string();
@@ -395,12 +589,17 @@ namespace nui
             {
                 if (mSceneView_Names.at(selected_scene_index).first == scene_view->get_scene_name())
                 {
-                    std::cout << "selected_scene_index: " << selected_scene_index << " " << scene_view->get_scene_name() << std::endl;
                     scene_view->set_render_mode(selected_render_mode);
                     scene_view->set_sequence_path(mCurrentPLYFolder);
                     std::string folder_name = mCurrentPLYFolder.substr(mCurrentPLYFolder.find_last_of("/\\") + 1);
-                    mSceneView_Names.at(selected_scene_index).second = folder_name;
-                    utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Set sequence path to: " + mCurrentPLYFolder + " for " + scene_view->get_scene_name() + "\n");
+
+                    // Verify the folder is valid
+                    if (std::filesystem::exists(mCurrentPLYFolder) &&  std::filesystem::is_directory(mCurrentPLYFolder)) {
+                        mSceneView_Names.at(selected_scene_index).second = folder_name;
+                        utilities::Logger::log(utilities::LogLevel::INFO, "Viewport Controller", "Set sequence path to: " + mCurrentPLYFolder + " for " + scene_view->get_scene_name() + "\n");
+                    }  else {
+                        utilities::Logger::log(utilities::LogLevel::ERROR, "Viewport Controller", "Invalid folder path or folder is empty\n");
+                    }
                     break;  
                 }
             }
@@ -412,11 +611,10 @@ namespace nui
         {
             mPLYFileDialog.Close();
 
-            // mPLYFileDialog.ClearSelected();
-
             for (auto& scene_view : *mSceneView_Container)
             {
                 // scene_view_start(scene_view.get()); 
+                // Cannot parallelize the scene_view_start due to the miniply library reading file corrupts when multiple threads are reading the same file
                 scene_view->receivePointCloud();
             }
             start_portal_falg = true;
@@ -428,11 +626,104 @@ namespace nui
         }
     }
 
-    void PCL_Property_Panel::scene_view_start(nui::SceneView* scene_view)
+    void Control_Panel::scene_view_start(nui::SceneView* scene_view)
     {
-        std::function<void()> loadGLPclFunction = [this, scene_view]() { scene_view->receivePointCloud(); };
+        captureThread = std::thread([this, scene_view]() { scene_view->receivePointCloud(); });
+    }
 
-        captureThread = std::thread(loadGLPclFunction);
-        // std::thread([this, scene_view]() { scene_view->receivePointCloud(); });
+    void Control_Panel::adjust_frame_rate(bool increase)
+    {
+        if (increase)
+        {
+            frame_rate += 5;
+            frame_rate = (frame_rate < 120) ? frame_rate : 120;
+        }
+        else
+        {
+            frame_rate -= 5;
+            frame_rate = (frame_rate > 0) ? frame_rate : 5;
+        }
+
+        for (auto& scene_view : *mSceneView_Container)
+        {
+            scene_view->set_FPS(frame_rate);
+        }
+    }
+
+    void Control_Panel::open_json_dialog()
+    {
+        mJsonFileDialog.Open();
+    }
+
+    int Control_Panel::get_current_FPS()
+    {
+        return frame_rate;
+    }
+
+    bool Control_Panel::get_limited_frame_rate()
+    {
+        return *mlimited_frame_rate;
+    }
+
+    void Control_Panel::set_limited_frame_rate(bool limited_frame_rate)
+    {
+        *mlimited_frame_rate = limited_frame_rate;
+    }
+
+    bool Control_Panel::get_auto_rotate()
+    {
+        return auto_rotate;
+    }
+
+    void Control_Panel::set_auto_rotate(bool auto_rotate)
+    {
+        this->auto_rotate = auto_rotate;
+    }
+
+    void Control_Panel::playback(bool forward)
+    {
+        if (forward)
+        {
+            if (current_frame < total_frames)
+            {
+                current_frame = current_frame + 1;
+                for (auto& scene_view : *mSceneView_Container)
+                {
+                    scene_view->set_frame_idx(current_frame);
+                    scene_view->set_pause(true);
+                }
+            }
+        }
+        else
+        {
+            if (current_frame > 0)
+            {
+                current_frame = current_frame - 1;
+                for (auto& scene_view : *mSceneView_Container)
+                {
+                    scene_view->set_frame_idx(current_frame);
+                    scene_view->set_pause(true);
+                }
+            }
+        }
+    }
+
+    void Control_Panel::increase_point_size(bool increase)
+    {
+        if (increase)
+        {
+            point_size += 0.5f;
+            point_size = (point_size < 10.0f) ? point_size : 10.0f;
+        }
+        else
+        {
+            point_size -= 0.5f;
+            point_size = (point_size > 1.0f) ? point_size : 1.0f;
+        }
+
+        for (auto& scene_view : *mSceneView_Container)
+        {
+            scene_view->set_pointSize(point_size);
+        }
     }
 }

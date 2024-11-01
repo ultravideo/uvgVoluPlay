@@ -94,6 +94,7 @@ Index of this file:
 // Visual Studio warnings
 #ifdef _MSC_VER
 #pragma warning (disable: 4996) // 'This function or variable may be unsafe': strcpy, strdup, sprintf, vsnprintf, sscanf, fopen
+#pragma clang diagnostic ignored "-Wdeprecated-declarations" 
 #endif
 
 // Clang/GCC warnings with -Weverything
