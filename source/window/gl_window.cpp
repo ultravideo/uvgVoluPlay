@@ -133,7 +133,7 @@ namespace nwindow
       {
         for (auto& scene_view : *mSceneView_Container)
         {
-          scene_view->rotate(0.1f);
+          scene_view->orbit_camera(false);
         }
       }
 
@@ -141,7 +141,40 @@ namespace nwindow
       {
         for (auto& scene_view : *mSceneView_Container)
         {
-          scene_view->rotate(-0.1f);
+          scene_view->orbit_camera(true);
+        }
+      }
+
+      /* Rotate model */
+      else if (glfwGetKey(mWindow, GLFW_KEY_Q))
+      {
+        for (auto& scene_view : *mSceneView_Container)
+        {
+          scene_view->rotate_model(true, 0.1f);
+        }
+      }
+
+      else if (glfwGetKey(mWindow, GLFW_KEY_E))
+      {
+        for (auto& scene_view : *mSceneView_Container)
+        {
+          scene_view->rotate_model(true, -0.1f);
+        }
+      }
+
+      else if (glfwGetKey(mWindow, GLFW_KEY_Z))
+      {
+        for (auto& scene_view : *mSceneView_Container)
+        {
+          scene_view->rotate_model(false, 0.1f);
+        }
+      }
+
+      else if (glfwGetKey(mWindow, GLFW_KEY_C))
+      {
+        for (auto& scene_view : *mSceneView_Container)
+        {
+          scene_view->rotate_model(false, -0.1f);
         }
       }
 

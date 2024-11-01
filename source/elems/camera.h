@@ -112,6 +112,24 @@ namespace nelems
 			update_view_matrix();
 		}
 
+		void orbit_move(bool right)
+		{
+			const float orbitSpeed = 10.0f; // Speed of orbiting
+			const float distanceAdjustment = 1.5f; // How much to adjust distance on each call
+
+			// Adjust the focus point based on orbiting around the camera
+			glm::vec3 rightDirection = get_right(); // Get right direction vector
+			glm::vec3 forwardDirection = get_forward(); // Get forward direction vector
+
+			// Move focus in the direction of right or left based on the input
+			mFocus += right ? rightDirection * orbitSpeed : -rightDirection * orbitSpeed;
+
+			// Optionally, adjust the distance smoothly
+			mDistance = glm::clamp(mDistance + (right ? -distanceAdjustment : distanceAdjustment), 1.0f, 1000.0f); // Clamp the distance between sensible limits
+
+			update_view_matrix(); // Update view matrix after adjustments
+		}
+
 		void auto_rotate()
 		{
 			// Update mock mouse position per 2 seconds
@@ -127,41 +145,53 @@ namespace nelems
 
 		void horizontal_pan(bool right)
 		{
-			if (right)
-			{
-				mFocus -= get_right() * 10.0f;
-			}
-			if (!right)
-			{
-				mFocus += get_right() * 10.0f;
-			}
+			 // Calculate the amount to pan, can be adjusted
+    const float panSpeed = 10.0f;
 
-			update_view_matrix();
+    // Determine the direction to pan (left or right)
+    glm::vec3 panDirection = right ? get_right() : -get_right();
+
+    // Move the camera position parallel to the line connecting the camera and the focus
+    mFocus += panDirection * panSpeed; // Adjust the focus point
+
+    // Update the camera's position to maintain the same distance from the new focus point
+    mPosition = mFocus - get_forward() * mDistance;
+
+    update_view_matrix(); // Update the view matrix after adjustments
 		}
 
 		void vertical_pan(bool up)
 		{
-			if (up)
-			{
-				mFocus -= get_up() * 10.0f;
-			}
-			if (!up)
-			{
-				mFocus += get_up() * 10.0f;
-			}
+					// Calculate the amount to pan, can be adjusted
+			const float panSpeed = 10.0f;
 
-			update_view_matrix();
+			// Determine the direction to pan (up or down)
+			glm::vec3 panDirection = up ? get_up() : -get_up();
+
+			// Move the camera position parallel to the line connecting the camera and the focus
+			mFocus += panDirection * panSpeed; // Adjust the focus point
+
+			// Update the camera's position to maintain the same distance from the new focus point
+			mPosition = mFocus - get_forward() * mDistance;
+
+			update_view_matrix(); // Update the view matrix after adjustments
 		}
 
-		void rotate(float angle)
+		void rotate_model(bool horizontal, float angle)
 		{
-			if (angle < 0.0f)
-			{
-				mYaw += 0.1f;
+			if (horizontal) {
+				if (angle < 0.0f) {
+					mYaw += 0.1f;
+				} else {
+					mYaw -= 0.1f;
+				}
 			} else {
-				mYaw -= 0.1f;
+				if (angle < 0.0f) {
+					mPitch += 0.1f;
+				} else {
+					mPitch -= 0.1f;
+				}
 			}
-
 
 			update_view_matrix();
 		}
