@@ -37,6 +37,7 @@ namespace nui
         bool get_auto_rotate();
         void set_auto_rotate(bool auto_rotate);
         void increase_point_size(bool increase);
+        void schedule_sync();
 
     private:
         std::string get_serialNumber(int index);
@@ -99,5 +100,7 @@ namespace nui
         std::string jsonfile_path = "";
 
         bool auto_rotate = false;
+        std::chrono::steady_clock::time_point last_sync_time = std::chrono::steady_clock::now();
+
     };
 }

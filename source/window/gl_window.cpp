@@ -190,7 +190,7 @@ namespace nwindow
       /* ############################################## */
 
       /* Pan control */
-      else if (glfwGetKey(mWindow, GLFW_KEY_LEFT))
+      else if (glfwGetKey(mWindow, GLFW_KEY_RIGHT))
       {
         for (auto& scene_view : *mSceneView_Container)
         {
@@ -198,7 +198,7 @@ namespace nwindow
         }
       }
 
-      else if (glfwGetKey(mWindow, GLFW_KEY_RIGHT))
+      else if (glfwGetKey(mWindow, GLFW_KEY_LEFT))
       {
         for (auto& scene_view : *mSceneView_Container)
         {
@@ -308,6 +308,7 @@ namespace nwindow
     mRenderCtx->post_render();
 
     handle_input();
+    mPCLPropertyPanel->schedule_sync();
   }
 
   void GLWindow::handle_input()
