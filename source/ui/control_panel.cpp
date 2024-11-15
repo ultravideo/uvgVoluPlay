@@ -481,7 +481,7 @@ namespace nui
                     {
                         if (!std::filesystem::exists(path) || !std::filesystem::is_directory(path))
                         {
-                            utilities::Logger::log(utilities::LogLevel::ERROR, "INIT", "Invalid folder path\n");
+                            utilities::Logger::log(utilities::LogLevel::ERROR, "INIT", "Invalid folder path + " + path + "\n");
                             return;
                         }
                     }
@@ -725,5 +725,34 @@ namespace nui
         {
             scene_view->set_pointSize(point_size);
         }
+    }
+
+    void Control_Panel::schedule_sync()
+    {
+        if (current_frame != mSceneView_Container->front()->get_current_frame())
+        {
+            current_frame = mSceneView_Container->front()->get_current_frame();
+            auto sync_now = std::chrono::steady_clock::now();
+            auto time_since_last_sync = std::chrono::duration_cast<std::chrono::milliseconds>(sync_now - last_sync_time);
+            if (time_since_last_sync.count() > 5.0f)
+            {
+                for (auto& scene_view : *mSceneView_Container)
+                {
+                    scene_view->set_frame_idx(current_frame);
+                }
+                last_sync_time = sync_now;
+            }
+        }
+
+        // auto sync_now = std::chrono::steady_clock::now();
+        // auto time_since_last_sync = std::chrono::duration_cast<std::chrono::milliseconds>(sync_now - last_sync_time);
+        // if (time_since_last_sync.count() > 1000 / frame_rate)
+        // {
+        //     last_sync_time = sync_now;
+        //     for (auto& scene_view : *mSceneView_Container)
+        //     {
+        //         scene_view->set_frame_idx(current_frame);
+        //     }
+        // }
     }
 }
