@@ -28,7 +28,7 @@ To build this project from source, you'll need to have vcpkg installed and added
 
 After following these steps, you should be able to build the project successfully.
 
-4. Build project:
+4. Build project: 
    1. Install deps:
    - For Linux: run this before generating cmake files
       ```
