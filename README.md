@@ -30,7 +30,7 @@ After following these steps, you should be able to build the project successfull
 
 4. Build project: 
    1. Install deps:
-   - For Linux: run this before generating cmake files
+   - For Linux: run this before generating cmake files 
       ```
       sudo apt install libglu1-mesa-dev
       ```
