@@ -77,6 +77,7 @@ namespace nui
 
         int repeat_time = 3;
         int frame_rate = 60;
+        
         //Kinect devices
         std::thread captureThread;
         bool stopServer = false;

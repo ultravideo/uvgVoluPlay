@@ -101,6 +101,8 @@ namespace nui
   private:
     void render_zmq();
 
+    void render_zmq_limited_fps();
+
     void render_sequence(); // Later
   
   private:

@@ -62,7 +62,7 @@ namespace nui
     {
         mShader->use();
 
-        //mLight->update(mShader.get());
+        // mLight->update(mShader.get());
 
         mFrameBuffer->bind();
 
@@ -106,6 +106,62 @@ namespace nui
         ImGui::End();
     }
 
+
+    /* With FPS limited */
+    // void SceneView::render_zmq()
+    // {   
+    //     double frameDuration_ = 1000.0 / static_cast<double>(FPS);
+    //     using Clock = std::chrono::steady_clock;
+
+    //     mShader->use();
+    //     mFrameBuffer->bind();
+
+    //     if (mMesh)
+    //     {
+    //         auto now = Clock::now();
+    //         auto elapsed = std::chrono::duration<double, std::milli>(now - frameStart);
+    //         bool timeForNextFrame = elapsed.count() >= frameDuration_;
+
+    //         if (!pcl_queue->empty() && parse_new_pcl && timeForNextFrame)
+    //         {
+    //             if (frame_idx == 0)
+    //             {
+    //                 set_focus_on_fisrt_frame(pcl_queue->front()->getPosition(0));
+    //             }
+
+    //             mMesh->parse_data(pcl_queue->front());
+    //             parse_new_pcl = false;
+    //             frame_idx++;
+    //             frameStart = now;
+    //         }
+
+    //         mMesh->render();
+    //     }
+
+    //     // Keep one frame being displayed, drop older queued frames if needed
+    //     if (pcl_queue->size() >= 2)
+    //     {
+    //         pcl_queue->pop();
+    //         parse_new_pcl = true;
+    //     }
+
+    //     mFrameBuffer->unbind();
+
+    //     ImGui::Begin(scene_name.c_str());
+
+    //     ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+    //     mSize = { viewportPanelSize.x, viewportPanelSize.y };
+
+    //     mCamera->set_aspect(mSize.x / mSize.y);
+    //     mCamera->update(mShader.get());
+
+    //     uint64_t textureID = mFrameBuffer->get_texture();
+    //     ImGui::Image(reinterpret_cast<void*>(textureID), ImVec2{ mSize.x, mSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+
+    //     ImGui::End();
+    // }
+
+
     void SceneView::render_sequence()
     {
         mShader->use();
@@ -136,7 +192,7 @@ namespace nui
                 int remainingTime = frameDuration - static_cast<int>(elapsed.count());
 
                 if (remainingTime > 0) {
-                    
+                    printf("Yes\n");
                 } else {
                     std::lock_guard<std::mutex> lock(frame_idx_mutex);
                     
@@ -171,7 +227,6 @@ namespace nui
             ImGui::Text("%s", description.c_str());
             ImGui::SetWindowFontScale(1.0f);
         }
-
 
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
         mSize = { viewportPanelSize.x, viewportPanelSize.y };
