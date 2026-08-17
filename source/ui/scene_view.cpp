@@ -88,6 +88,11 @@ namespace nui
             pcl_queue->pop();
             parse_new_pcl = true;
         }
+        // if (!pcl_queue->empty()) 
+        // {
+        //     pcl_queue->pop();
+        //     parse_new_pcl = true;
+        // }
 
         mFrameBuffer->unbind();
 
