@@ -149,7 +149,7 @@ namespace Communication {
             auto Pmessage = std::move(zmq_handler->positionMessages.front());
             auto Cmessage = std::move(zmq_handler->colorMessages.front());
 
-            size_t numPoints = Pmessage.size() / (sizeof(Vector3<uint16_t>));
+            size_t numPoints = Pmessage.size() / (sizeof(Vector3<int16_t>));
             // std::shared_ptr<std::vector<glm::vec3>> positions = std::make_shared<std::vector<glm::vec3>>(reinterpret_cast<const glm::vec3*>(Pmessage.data()), reinterpret_cast<const glm::vec3*>(Pmessage.data()) + numPoints);
             // std::shared_ptr<std::vector<glm::vec3>> attributes = std::make_shared<std::vector<glm::vec3>>(reinterpret_cast<const glm::vec3*>(Cmessage.data()), reinterpret_cast<const glm::vec3*>(Cmessage.data()) + numPoints);
 
@@ -157,8 +157,8 @@ namespace Communication {
             const auto* attributePointer = reinterpret_cast<const Vector3<uint8_t>*>(Cmessage.data());
             std::vector<Vector3<uint8_t>> rawAttrTmp(attributePointer, attributePointer + numPoints);
 
-            const auto* geometryPointer = reinterpret_cast<const Vector3<uint16_t>*>(Pmessage.data());
-            std::vector<Vector3<uint16_t>> rawGeoTmp(geometryPointer, geometryPointer + numPoints);
+            const auto* geometryPointer = reinterpret_cast<const Vector3<int16_t>*>(Pmessage.data());
+            std::vector<Vector3<int16_t>> rawGeoTmp(geometryPointer, geometryPointer + numPoints);
 
             std::shared_ptr<std::vector<glm::vec3>> positions = std::make_shared<std::vector<glm::vec3>>(numPoints);
             std::shared_ptr<std::vector<glm::vec3>> attributes = std::make_shared<std::vector<glm::vec3>>(numPoints);
