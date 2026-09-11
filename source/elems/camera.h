@@ -23,7 +23,9 @@ namespace nelems
 			mFOV = fov;
 
 			// mFocus = { 40.0f, 0.0f, 210.0f };
-			mDistance = 550.0f;
+			// mDistance = 550.0f;
+			mDistance = 1000.0f;
+			// mDistance = 750.0f;
 
 			set_aspect(mAspect);
 
@@ -289,7 +291,7 @@ namespace nelems
 		const glm::vec3 cForward = { 0.0f, 0.0f, -1.0f };
 
 		const float cRotationSpeed = 2.0f;
-		std::chrono::steady_clock::time_point start_time = std::chrono::high_resolution_clock::now();
+		std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
 	};
 }
 

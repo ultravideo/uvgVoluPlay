@@ -2,6 +2,50 @@
 #include "portal.hpp"
 #include <filesystem>
 
+template <typename T>
+class Vector3 : public std::array<T, 3> {
+   public:
+    Vector3() : std::array<T, 3>() {}
+    Vector3(T x, T y, T z) : std::array<T, 3>({x, y, z}) {}
+    Vector3(std::array<T, 3>& arr) : std::array<T, 3>(arr) {}
+    Vector3(std::array<T, 3>&& arr) : std::array<T, 3>(std::move(arr)) {} 
+    Vector3(const std::array<T, 3>& arr) {
+        std::copy(arr.begin(), arr.end(), this->begin());
+    }   
+    
+    template <typename U>
+    Vector3<T> operator+(const Vector3<U>& other) const {
+        return {(*this)[0] + other[0], (*this)[1] + other[1], (*this)[2] + other[2]};
+    }
+
+    template <typename U>
+    Vector3<T> operator-(const Vector3<U>& other) const {
+        return {(*this)[0] - other[0], (*this)[1] - other[1], (*this)[2] - other[2]};
+    }
+
+    Vector3<double> operator-(const Vector3<double>& other) const {
+        return {(*this)[0] - other[0], (*this)[1] - other[1], (*this)[2] - other[2]};
+    }
+
+    Vector3<T> operator-() const { return {-(*this)[0], -(*this)[1], -(*this)[2]}; }
+
+    template <typename U>
+    Vector3<T>& operator+=(const Vector3<U>& other) {
+        (*this)[0] += other[0];
+        (*this)[1] += other[1];
+        (*this)[2] += other[2];
+        return *this;
+    }
+
+    template <typename U>
+    Vector3<T>& operator/=(const U& val) {
+        (*this)[0] /= val;
+        (*this)[1] /= val;
+        (*this)[2] /= val;
+        return *this;
+    }
+};
+
 namespace Communication {
     Portal::Portal() {
     }
@@ -92,6 +136,7 @@ namespace Communication {
 
         std::unique_lock<std::mutex> lck(receive_message_mutex);
         
+        int frame_num = 0;
         while (true) {
             zmq_handler->receive_message_cv.wait(lck, [this] { return (!zmq_handler->colorMessages.empty() && !zmq_handler->positionMessages.empty()) || stop_flag; });
 
@@ -104,9 +149,39 @@ namespace Communication {
             auto Pmessage = std::move(zmq_handler->positionMessages.front());
             auto Cmessage = std::move(zmq_handler->colorMessages.front());
 
-            size_t numPoints = Pmessage.size() / (sizeof(glm::vec3));
-            std::shared_ptr<std::vector<glm::vec3>> positions = std::make_shared<std::vector<glm::vec3>>(reinterpret_cast<const glm::vec3*>(Pmessage.data()), reinterpret_cast<const glm::vec3*>(Pmessage.data()) + numPoints);
-            std::shared_ptr<std::vector<glm::vec3>> attributes = std::make_shared<std::vector<glm::vec3>>(reinterpret_cast<const glm::vec3*>(Cmessage.data()), reinterpret_cast<const glm::vec3*>(Cmessage.data()) + numPoints);
+            size_t numPoints = Pmessage.size() / (sizeof(Vector3<int16_t>));
+            // std::shared_ptr<std::vector<glm::vec3>> positions = std::make_shared<std::vector<glm::vec3>>(reinterpret_cast<const glm::vec3*>(Pmessage.data()), reinterpret_cast<const glm::vec3*>(Pmessage.data()) + numPoints);
+            // std::shared_ptr<std::vector<glm::vec3>> attributes = std::make_shared<std::vector<glm::vec3>>(reinterpret_cast<const glm::vec3*>(Cmessage.data()), reinterpret_cast<const glm::vec3*>(Cmessage.data()) + numPoints);
+
+
+            const auto* attributePointer = reinterpret_cast<const Vector3<uint8_t>*>(Cmessage.data());
+            std::vector<Vector3<uint8_t>> rawAttrTmp(attributePointer, attributePointer + numPoints);
+
+            const auto* geometryPointer = reinterpret_cast<const Vector3<int16_t>*>(Pmessage.data());
+            std::vector<Vector3<int16_t>> rawGeoTmp(geometryPointer, geometryPointer + numPoints);
+
+            std::shared_ptr<std::vector<glm::vec3>> positions = std::make_shared<std::vector<glm::vec3>>(numPoints);
+            std::shared_ptr<std::vector<glm::vec3>> attributes = std::make_shared<std::vector<glm::vec3>>(numPoints);
+
+            for (size_t i = 0; i < numPoints; ++i) {
+                (*positions)[i] = glm::vec3(
+                    static_cast<float>(rawGeoTmp[i][0]),
+                    static_cast<float>(rawGeoTmp[i][1]),
+                    static_cast<float>(rawGeoTmp[i][2])
+                );
+
+                // (*attributes)[i][0] = static_cast<float>(rawAttrTmp[i][0]) / 255.0f;
+                // (*attributes)[i][1] = static_cast<float>(rawAttrTmp[i][1]) / 255.0f;
+                // (*attributes)[i][2] = static_cast<float>(rawAttrTmp[i][2]) / 255.0f;
+
+                (*attributes)[i] = glm::vec3(
+                    static_cast<float>(rawAttrTmp[i][0])/ 255.0f,
+                    static_cast<float>(rawAttrTmp[i][1])/ 255.0f,
+                    static_cast<float>(rawAttrTmp[i][2])/ 255.0f
+                );
+            }
+
+            // printf("Frame count: %d\n", (int)frame_num++);
 
             // Add the received point to the point cloud
             pointCloud->parse(positions, attributes);

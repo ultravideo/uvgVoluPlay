@@ -208,7 +208,6 @@ namespace nui
     }
 
     void Control_Panel::scene_view_control_handle() {
-        
         if (ImGui::CollapsingHeader("Scene Control", ImGuiTreeNodeFlags_DefaultOpen))
         {
             ImGui::BulletText("Limit square Frame Rate:");
@@ -227,7 +226,7 @@ namespace nui
                 }
             }
             frame_rate = ((frame_rate / 5) * 5 > 0) ? (frame_rate / 5) * 5 : 5;
-
+            
             if (!StartButton_disable)
             {
                 return;
